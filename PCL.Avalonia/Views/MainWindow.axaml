@@ -7,138 +7,150 @@
     x:Class="PCL.Avalonia.Views.MainWindow"
     x:DataType="vm:MainViewModel"
     Icon="/Assets/avalonia-logo.ico"
-    Title="PCL II"
+    Title="PCL Mac 第三方重构版"
     Width="900" Height="600"
-    Background="#F0F4F8">
+    Background="#F3F7FA">
 
     <Design.DataContext>
         <vm:MainViewModel />
     </Design.DataContext>
 
     <Window.Styles>
-        <Style Selector="TextBox">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#D0D0D0" />
-            <Setter Property="Foreground" Value="Black" />
+        <Style Selector="Button.NavBtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="16,6" />
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="FontSize" Value="14" />
         </Style>
-        <Style Selector="ComboBox">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#D0D0D0" />
-            <Setter Property="Foreground" Value="Black" />
+        <Style Selector="Button.NavBtn:pointerover">
+            <Setter Property="Background" Value="#33FFFFFF" />
         </Style>
-        <Style Selector="ComboBoxItem">
+        <Style Selector="Button.NavBtn.active">
             <Setter Property="Background" Value="White" />
-            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="Foreground" Value="#1171d1" />
         </Style>
-        <Style Selector="ComboBoxItem:pointerover">
-            <Setter Property="Background" Value="#E8F0F8" />
+
+        <Style Selector="Button.TabBtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#666666" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16,4" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="Button.TabBtn.active">
+            <Setter Property="Background" Value="#1171d1" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="Button.MenuBtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#333" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Button.MenuBtn:pointerover">
+            <Setter Property="Background" Value="#E0EAF5" />
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="48,*">
         <!-- 顶部导航栏 -->
-        <Border Grid.Row="0" Background="#2581E8" Height="48" Padding="80,0,16,0">
-            <Grid ColumnDefinitions="Auto,*">
-                <TextBlock Grid.Column="0" Text="PCL II" Foreground="White" FontSize="20"
-                    FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,32,0" />
+        <Border Grid.Row="0" Background="#1171d1" Padding="80,0,16,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Text="PCL Mac 第三方重构版" Foreground="White" FontSize="18"
+                    FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,40,0" />
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="24"
-                    VerticalAlignment="Center">
-                    <Button Content="启动" Background="Transparent" Foreground="White"
-                        BorderThickness="0" FontSize="14" FontWeight="Bold" />
-                    <Button Content="下载" Background="Transparent" Foreground="White"
-                        BorderThickness="0" FontSize="14" />
-                    <Button Content="设置" Background="Transparent" Foreground="White"
-                        BorderThickness="0" FontSize="14" />
-                    <Button Content="更多" Background="Transparent" Foreground="White"
-                        BorderThickness="0" FontSize="14" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Content="启动" Classes="NavBtn active" Command="{Binding NavigateCommand}" CommandParameter="Launch" />
+                    <Button Content="下载" Classes="NavBtn" Command="{Binding NavigateCommand}" CommandParameter="Download" />
+                    <Button Content="设置" Classes="NavBtn" Command="{Binding NavigateCommand}" CommandParameter="Settings" />
+                    <Button Content="更多" Classes="NavBtn" Command="{Binding NavigateCommand}" CommandParameter="More" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- 主体区域 -->
         <Grid Grid.Row="1" ColumnDefinitions="220,*">
-            <!-- 左侧菜单栏 -->
-            <Border Grid.Column="0" Background="#E8F0F8" Padding="16,24">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Minecraft" Foreground="#666" FontSize="12" FontWeight="Bold"
-                        Margin="0,0,0,8" />
-                    <Button Content="自动安装" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left" Background="Transparent"
-                        BorderThickness="0" Foreground="#333" />
-                    <Button Content="手动安装" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left" Background="Transparent"
-                        BorderThickness="0" Foreground="#333" />
+            <!-- 左侧菜单 -->
+            <Border Grid.Column="0" Background="#F3F7FA" Padding="12,16">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Minecraft" Foreground="#666" FontSize="12" FontWeight="Bold" Margin="16,0,0,8" />
+                    <Button Content="自动安装" Classes="MenuBtn" Command="{Binding NavigateCommand}" CommandParameter="Install" />
+                    <Button Content="手动安装" Classes="MenuBtn" Command="{Binding NavigateCommand}" CommandParameter="Manual" />
 
-                    <TextBlock Text="资源" Foreground="#666" FontSize="12" FontWeight="Bold"
-                        Margin="0,16,0,8" />
-                    <Button Content="Mod" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left" Background="Transparent"
-                        BorderThickness="0" Foreground="#333" />
-                    <Button Content="整合包" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left" Background="Transparent"
-                        BorderThickness="0" Foreground="#333" />
+                    <TextBlock Text="资源" Foreground="#666" FontSize="12" FontWeight="Bold" Margin="16,16,0,8" />
+                    <Button Content="Mod" Classes="MenuBtn" Command="{Binding NavigateCommand}" CommandParameter="Mod" />
+                    <Button Content="整合包" Classes="MenuBtn" Command="{Binding NavigateCommand}" CommandParameter="Modpack" />
                 </StackPanel>
             </Border>
 
-            <!-- 右侧内容区 -->
-            <Grid Grid.Column="1" Margin="16" RowDefinitions="Auto,*,Auto">
-                <!-- 输入区 -->
-                <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="20"
-                    Margin="0,0,0,16">
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="启动设置" FontSize="18" FontWeight="Bold" Foreground="#333" />
-
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
-                            <StackPanel Grid.Column="0" Spacing="6">
-                                <TextBlock Text="游戏版本" Foreground="#666" FontSize="12" />
-                                <ComboBox ItemsSource="{Binding AvailableVersions}"
-                                    SelectedItem="{Binding VersionName}"
-                                    HorizontalAlignment="Stretch" />
+            <!-- 右侧内容区（根据 CurrentPage 切换） -->
+            <Grid Grid.Column="1" Margin="16">
+                <!-- 启动页面 -->
+                <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="320,*">
+                    <Border Grid.Column="0" Background="White" Padding="16" CornerRadius="8" BoxShadow="0 2 8 0 #10000000">
+                        <Grid RowDefinitions="Auto,*,Auto">
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,24">
+                                <Button Content="正版" Classes="TabBtn active" />
+                                <Button Content="离线" Classes="TabBtn" />
                             </StackPanel>
-
-                            <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="玩家名称" Foreground="#666" FontSize="12" />
-                                <TextBox Text="{Binding PlayerName}" PlaceholderText="输入玩家名"
-                                    HorizontalAlignment="Stretch" />
+                            <StackPanel Grid.Row="1" Spacing="20" VerticalAlignment="Center">
+                                <Border Width="80" Height="80" CornerRadius="40" BorderBrush="#1171d1" BorderThickness="2" HorizontalAlignment="Center">
+                                    <Path Data="M 40,35 A 15,15 0 1 1 40,65 A 15,15 0 1 1 40,35 M 20,80 C 20,65 30,55 40,55 C 50,55 60,65 60,80" Fill="#1171d1" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <ComboBox Grid.Column="0" PlaceholderText="添加新账号" HorizontalAlignment="Stretch" />
+                                    <Button Grid.Column="1" Content="登录" Background="White" BorderBrush="#1171d1" Foreground="#1171d1" BorderThickness="1" CornerRadius="4" />
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                                    <TextBlock Text="购买正版" Foreground="#999999" FontSize="12" />
+                                    <TextBlock Text="前往官网" Foreground="#999999" FontSize="12" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Spacing="8">
+                                <Button Command="{Binding LaunchCommand}" Background="White" BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4" Padding="0,8" HorizontalAlignment="Stretch" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="启动游戏" Foreground="#1171d1" FontWeight="Bold" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding VersionName}" Foreground="#666666" FontSize="11" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                    <Button Grid.Column="0" Content="版本选择" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                    <Button Grid.Column="1" Content="版本设置" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                </Grid>
                             </StackPanel>
                         </Grid>
+                    </Border>
+                    <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#E5F0F8" Offset="0.0" />
+                                <GradientStop Color="#D4E6F5" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                </Grid>
 
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="游戏目录" Foreground="#666" FontSize="12" />
-                            <TextBox Text="{Binding McFolder}" IsReadOnly="True"
-                                Background="#F5F5F5" />
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
+                <!-- 下载页面 (占位) -->
+                <Grid IsVisible="{Binding IsDownloadPage}">
+                    <TextBlock Text="下载页面开发中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="#999" />
+                </Grid>
 
-                <!-- 日志区 -->
-                <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16"
-                    Margin="0,0,0,16">
-                    <Grid RowDefinitions="Auto,*">
-                        <TextBlock Grid.Row="0" Text="运行日志" FontWeight="Bold" Foreground="#333"
-                            Margin="0,0,0,8" />
-                        <ScrollViewer Grid.Row="1">
-                            <TextBlock Text="{Binding LogOutput}"
-                                FontFamily="Menlo,Consolas,monospace" FontSize="12"
-                                Foreground="#444" TextWrapping="Wrap" />
-                        </ScrollViewer>
-                    </Grid>
-                </Border>
+                <!-- 设置页面 (占位) -->
+                <Grid IsVisible="{Binding IsSettingsPage}">
+                    <TextBlock Text="设置页面开发中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="#999" />
+                </Grid>
 
-                <!-- 启动按钮 -->
-                <Button Grid.Row="2" Content="启动游戏" Command="{Binding LaunchCommand}"
-                    Background="#2581E8" Foreground="White" FontSize="16" FontWeight="Bold"
-                    CornerRadius="8" Height="48" HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
-                    <Button.Styles>
-                        <Style Selector="Button:disabled">
-                            <Setter Property="Background" Value="#A0C4F0" />
-                            <Setter Property="Foreground" Value="White" />
-                        </Style>
-                    </Button.Styles>
-                </Button>
+                <!-- 其他页面 (占位) -->
+                <Grid IsVisible="{Binding IsMorePage}">
+                    <TextBlock Text="更多页面开发中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="#999" />
+                </Grid>
             </Grid>
         </Grid>
     </Grid>

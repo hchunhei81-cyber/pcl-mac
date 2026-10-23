@@ -9,6 +9,24 @@ namespace PCL.Avalonia.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
+    // 导航状态
+    [ObservableProperty]
+    public partial string CurrentPage { get; set; } = "Launch";
+
+    public bool IsLaunchPage => CurrentPage == "Launch";
+    public bool IsDownloadPage => CurrentPage == "Download";
+    public bool IsSettingsPage => CurrentPage == "Settings";
+    public bool IsMorePage => CurrentPage == "More";
+
+    partial void OnCurrentPageChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsLaunchPage));
+        OnPropertyChanged(nameof(IsDownloadPage));
+        OnPropertyChanged(nameof(IsSettingsPage));
+        OnPropertyChanged(nameof(IsMorePage));
+    }
+
+    // 启动相关
     public List<string> AvailableVersions { get; } = new() { "26.2", "26.3-snapshot-3" };
 
     [ObservableProperty]
@@ -27,6 +45,12 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool IsBusy { get; set; } = false;
+
+    [RelayCommand]
+    private void Navigate(string page)
+    {
+        CurrentPage = page;
+    }
 
     [RelayCommand]
     private async Task LaunchAsync()
