@@ -13,7 +13,6 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     public partial string CurrentPage { get; set; } = "Launch";
 
-    // 用于顶部导航的高亮
     public bool IsLaunchPage => CurrentPage == "Launch";
     public bool IsDownloadPage => CurrentPage == "Download";
     public bool IsSettingsPage => CurrentPage == "Settings";
@@ -38,6 +37,26 @@ public partial class MainViewModel : ViewModelBase
     }
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
+
+    [ObservableProperty]
+    public partial string? VersionName { get; set; }
+
+    [ObservableProperty]
+    public partial string PlayerName { get; set; } = "Player";
+
+    [ObservableProperty]
+    public partial string LogOutput { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; } = false;
+
+    [ObservableProperty]
+    public partial int MaxMemoryMb { get; set; } = 2048;
+
+    [ObservableProperty]
+    public partial string JavaPath { get; set; } = "";
+
+    // 下载页相关
     public ObservableCollection<PCL.Launcher.VersionManifest.VersionInfo> DownloadVersions { get; } = new();
 
     [ObservableProperty]
@@ -54,6 +73,129 @@ public partial class MainViewModel : ViewModelBase
         if (value != null)
         {
             DownloadStatusText = $"已选择版本: {value.Id} ({value.Type})";
+        }
+    }
+
+    // 资源搜索相关
+    public ObservableCollection<PCL.Launcher.ModrinthApi.SearchResult> SearchResults { get; } = new();
+
+    [ObservableProperty]
+    public partial string SearchQuery { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string SearchProjectType { get; set; } = "mod";
+
+    [ObservableProperty]
+    public partial bool IsSearching { get; set; } = false;
+
+    [ObservableProperty]
+    public partial string SearchStatus { get; set; } = "输入关键词搜索";
+
+    [ObservableProperty]
+    public partial bool IsSearchingMode { get; set; } = false;
+
+    [ObservableProperty]
+    public partial bool IsManualInstallMode { get; set; } = false;
+
+    public bool IsAutoInstallMode => !IsSearchingMode && !IsManualInstallMode;
+    public bool IsDownloadInstallTab => IsAutoInstallMode;
+    public bool IsDownloadModTab => IsSearchingMode && SearchProjectType == "mod";
+    public bool IsDownloadModpackTab => IsSearchingMode && SearchProjectType == "modpack";
+
+    partial void OnIsSearchingModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsAutoInstallMode));
+        OnPropertyChanged(nameof(IsDownloadInstallTab));
+        OnPropertyChanged(nameof(IsDownloadModTab));
+        OnPropertyChanged(nameof(IsDownloadModpackTab));
+    }
+    partial void OnIsManualInstallModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsAutoInstallMode));
+        OnPropertyChanged(nameof(IsDownloadInstallTab));
+    }
+    partial void OnSearchProjectTypeChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsDownloadInstallTab));
+        OnPropertyChanged(nameof(IsDownloadModTab));
+        OnPropertyChanged(nameof(IsDownloadModpackTab));
+    }
+
+    // 手动安装
+    [ObservableProperty]
+    public partial string ImportPath { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string ImportVersionName { get; set; } = "ImportedPack";
+
+    [ObservableProperty]
+    public partial string ImportStatus { get; set; } = "";
+
+    public MainViewModel()
+    {
+        RefreshVersions();
+    }
+
+    [RelayCommand]
+    private void RefreshVersions()
+    {
+        AvailableVersions.Clear();
+        try
+        {
+            var list = PCL.Launcher.VersionScanner.ScanVersions(McFolder);
+            foreach (var v in list) AvailableVersions.Add(v);
+            
+            VersionName = AvailableVersions.Count > 0 ? AvailableVersions[0] : null;
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"[WARN] 扫描版本失败: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task FetchDownloadVersionsAsync()
+    {
+        if (IsFetchingVersions) return;
+        IsFetchingVersions = true;
+        DownloadStatusText = "正在获取版本列表...";
+        DownloadVersions.Clear();
+        try
+        {
+            var list = await Task.Run(() => PCL.Launcher.VersionManifest.FetchMojangVersions());
+            foreach (var v in list) DownloadVersions.Add(v);
+            DownloadStatusText = $"已加载 {list.Count} 个版本";
+        }
+        catch (Exception ex)
+        {
+            DownloadStatusText = $"获取失败: {ex.Message}";
+        }
+        finally
+        {
+            IsFetchingVersions = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SearchResourcesAsync()
+    {
+        if (IsSearching) return;
+        IsSearching = true;
+        SearchStatus = "正在搜索...";
+        SearchResults.Clear();
+        try
+        {
+            var list = await Task.Run(() => PCL.Launcher.ModrinthApi.Search(SearchQuery, SearchProjectType, 20));
+            foreach (var r in list) SearchResults.Add(r);
+            SearchStatus = $"找到 {list.Count} 个结果";
+        }
+        catch (Exception ex)
+        {
+            SearchStatus = $"搜索失败: {ex.Message}";
+        }
+        finally
+        {
+            IsSearching = false;
         }
     }
 
@@ -78,82 +220,48 @@ public partial class MainViewModel : ViewModelBase
             PCL.Launcher.DownloadCore.Download(dlOptions);
         });
         DownloadStatusText = $"{SelectedDownloadVersion.Id} 安装完成！";
-        RefreshVersions(); // 刷新左侧启动页的版本列表
-    }
-
-    [ObservableProperty]
-    public partial string? VersionName { get; set; }
-
-    [ObservableProperty]
-    public partial string PlayerName { get; set; } = "Player";
-
-    [ObservableProperty]
-    public partial string LogOutput { get; set; } = "";
-
-    [ObservableProperty]
-    public partial bool IsBusy { get; set; } = false;
-
-    // 设置项
-    [ObservableProperty]
-    public partial int MaxMemoryMb { get; set; } = 2048;
-
-    [ObservableProperty]
-    public partial string JavaPath { get; set; } = "";
-
-    public MainViewModel()
-    {
         RefreshVersions();
     }
 
     [RelayCommand]
-    private void RefreshVersions()
+    private async Task ImportPackageAsync()
     {
-        AvailableVersions.Clear();
-        try
+        if (string.IsNullOrEmpty(ImportPath) || string.IsNullOrEmpty(ImportVersionName))
         {
-            var list = PCL.Launcher.VersionScanner.ScanVersions(McFolder);
-            foreach (var v in list)
-            {
-                AvailableVersions.Add(v);
-            }
-            if (AvailableVersions.Count > 0)
-            {
-                VersionName = AvailableVersions[0];
-            }
-            else
-            {
-                VersionName = null;
-            }
+            ImportStatus = "请填写路径和版本名";
+            return;
         }
-        catch (Exception ex)
+        ImportStatus = "正在导入...";
+        var success = await Task.Run(() => PCL.Launcher.PackageImporter.ImportPackage(ImportPath, ImportVersionName, McFolder));
+        ImportStatus = success ? "导入成功！" : "导入失败，请查看日志";
+        if (success)
         {
-            AppendLog($"[WARN] 扫描版本失败: {ex.Message}");
+            RefreshVersions();
+            VersionName = ImportVersionName;
         }
     }
 
     [RelayCommand]
-    private async Task FetchDownloadVersionsAsync()
+    private void SwitchDownloadTab(string tab)
     {
-        if (IsFetchingVersions) return;
-        IsFetchingVersions = true;
-        DownloadStatusText = "正在获取版本列表...";
-        DownloadVersions.Clear();
-        try
+        if (tab == "Install")
         {
-            var list = await Task.Run(() => PCL.Launcher.VersionManifest.FetchMojangVersions());
-            foreach (var v in list)
-            {
-                DownloadVersions.Add(v);
-            }
-            DownloadStatusText = $"已加载 {list.Count} 个版本";
+            IsSearchingMode = false;
+            IsManualInstallMode = false;
         }
-        catch (Exception ex)
+        else if (tab == "Mod")
         {
-            DownloadStatusText = $"获取失败: {ex.Message}";
+            IsSearchingMode = true;
+            IsManualInstallMode = false;
+            SearchProjectType = "mod";
+            _ = SearchResourcesAsync();
         }
-        finally
+        else if (tab == "Modpack")
         {
-            IsFetchingVersions = false;
+            IsSearchingMode = true;
+            IsManualInstallMode = false;
+            SearchProjectType = "modpack";
+            _ = SearchResourcesAsync();
         }
     }
 
@@ -166,9 +274,26 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void NavigateMenu(string menu)
     {
-        // 左侧菜单点击，映射到顶部的页面
-        if (menu == "Install" || menu == "Manual" || menu == "Mod" || menu == "Modpack")
+        if (menu == "Install")
+        {
             CurrentPage = "Download";
+            IsSearchingMode = false;
+            IsManualInstallMode = false;
+        }
+        else if (menu == "Manual")
+        {
+            CurrentPage = "Download";
+            IsSearchingMode = false;
+            IsManualInstallMode = true;
+        }
+        else if (menu == "Mod" || menu == "Modpack")
+        {
+            CurrentPage = "Download";
+            IsSearchingMode = true;
+            IsManualInstallMode = false;
+            SearchProjectType = menu == "Mod" ? "mod" : "modpack";
+            _ = SearchResourcesAsync();
+        }
     }
 
     [RelayCommand]
