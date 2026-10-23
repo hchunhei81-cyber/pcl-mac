@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- 原 PCL2 源码根目录，由 scripts/setup.sh 克隆到 vendor/PCL2/ -->
+    <PCL2Root Condition="'$(PCL2Root)' == ''">$(MSBuildThisFileDirectory)vendor/PCL2/</PCL2Root>
+  </PropertyGroup>
+</Project>

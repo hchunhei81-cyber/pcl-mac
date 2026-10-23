@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <RootNamespace>PCL</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <OptionCompare>Binary</OptionCompare>
+    <MyType>Empty</MyType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036,42314</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(PCL2Root)Plain Craft Launcher 2\Modules\**\*.vb" Exclude="$(PCL2Root)Plain Craft Launcher 2\Modules\ModMain.vb;$(PCL2Root)Plain Craft Launcher 2\Modules\Base\ModAnimation.vb;$(PCL2Root)Plain Craft Launcher 2\Modules\Base\MyBitmap.vb;$(PCL2Root)Plain Craft Launcher 2\Modules\ModEvent.vb;$(PCL2Root)Plain Craft Launcher 2\Modules\ThirdParty\DragHelper.vb;$(PCL2Root)Plain Craft Launcher 2\Modules\ModSecret.vb;$(PCL2Root)Plain Craft Launcher 2\Modules\ModMusic.vb;$(PCL2Root)Plain Craft Launcher 2\Pages\PageSetup\SettingService.vb" />
+    <Compile Include="Compat\**\*.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(PCL2Root)MeloongCore\Shared\MeloongCore.csproj" />
+    <ProjectReference Include="..\PCLCS.Shared\PCLCS.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Import Include="MeloongCore" />
+    <Import Include="MeloongCore.Extensions" />
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="Newtonsoft.Json" />
+    <Import Include="Newtonsoft.Json.Linq" />
+    <Import Include="PCLCS" />
+    <Import Include="System" />
+    <Import Include="System.Collections.Concurrent" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.IO" />
+    <Import Include="System.IO.Compression" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Net" />
+    <Import Include="System.Net.Http" />
+    <Import Include="System.Text" />
+    <Import Include="System.Threading" />
+    <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="ThrottleDebounce" />
+  </ItemGroup>
+
+</Project>
