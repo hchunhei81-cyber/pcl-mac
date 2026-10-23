@@ -38,7 +38,7 @@ pcl-mac/
 ├── Directory.Build.props # 定义 $(PCL2Root) 变量
 └── README.md
 
-text
+
 
 ## 快速开始
 
@@ -49,5 +49,4 @@ text
 
 ### 2. 拉取原 PCL2 源码
 
-```bash
 ./scripts/setup.sh
