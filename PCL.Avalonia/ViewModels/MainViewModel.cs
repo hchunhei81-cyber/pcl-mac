@@ -18,6 +18,12 @@ public partial class MainViewModel : ViewModelBase
     public bool IsSettingsPage => CurrentPage == "Settings";
     public bool IsMorePage => CurrentPage == "More";
 
+    partial void OnPlayerNameChanged(string value) => SaveConfig();
+    partial void OnVersionNameChanged(string? value) => SaveConfig();
+    partial void OnMaxMemoryMbChanged(int value) => SaveConfig();
+    partial void OnJavaPathChanged(string value) => SaveConfig();
+    partial void OnIsOfflineModeChanged(bool value) => SaveConfig();
+
     partial void OnCurrentPageChanged(string value)
     {
         OnPropertyChanged(nameof(IsLaunchPage));
@@ -142,7 +148,32 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
+        var config = PCL.Launcher.LauncherConfig.Load();
+        PlayerName = config.PlayerName;
+        MaxMemoryMb = config.MaxMemoryMb;
+        JavaPath = config.JavaPath;
+        IsOfflineMode = config.IsOfflineMode;
+
         RefreshVersions();
+
+        // 恢复上次选的版本
+        if (!string.IsNullOrEmpty(config.VersionName) && AvailableVersions.Contains(config.VersionName))
+        {
+            VersionName = config.VersionName;
+        }
+    }
+
+    private void SaveConfig()
+    {
+        var config = new PCL.Launcher.LauncherConfig
+        {
+            PlayerName = this.PlayerName,
+            VersionName = this.VersionName ?? "",
+            MaxMemoryMb = this.MaxMemoryMb,
+            JavaPath = this.JavaPath,
+            IsOfflineMode = this.IsOfflineMode
+        };
+        config.Save();
     }
 
     [RelayCommand]
