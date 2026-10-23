@@ -3,6 +3,10 @@ clear && cat > ~/PCL/pcl-mac/README.md <<'MDEOF'
 
 > 基于 PCL2 源码的 macOS 第三方重构版本，非官方项目。
 
+## 下载
+
+最新版本：[PCL Mac v1.0.0 (macOS ARM64)](https://github.com/hchunhei81-cyber/pcl-mac/releases)
+
 ## 这是什么
 
 本项目是对 [PCL2 (Plain Craft Launcher 2)](https://github.com/Meloong-Git/PCL) 的 macOS 平台重构尝试。原版 PCL2 基于 C# / VB.NET 与 WPF 开发，无法原生运行在 macOS 上。本项目保留其业务逻辑层，使用跨平台 UI 框架（Avalonia）重写表示层，目标是让 Mac 用户获得接近 PCL2 的使用体验。
