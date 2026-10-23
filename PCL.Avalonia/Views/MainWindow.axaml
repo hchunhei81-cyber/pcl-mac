@@ -1,46 +1,145 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:PCL.Avalonia.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-        x:Class="PCL.Avalonia.Views.MainWindow"
-        x:DataType="vm:MainViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="PCL Mac 第三方重构版"
-        Width="800" Height="600">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:PCL.Avalonia.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+    x:Class="PCL.Avalonia.Views.MainWindow"
+    x:DataType="vm:MainViewModel"
+    Icon="/Assets/avalonia-logo.ico"
+    Title="PCL II"
+    Width="900" Height="600"
+    Background="#F0F4F8">
 
     <Design.DataContext>
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="16" RowSpacing="8">
-        <TextBlock Grid.Row="0" Text="PCL Mac 第三方重构版" FontSize="20" FontWeight="Bold" />
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D0D0D0" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D0D0D0" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="ComboBoxItem:pointerover">
+            <Setter Property="Background" Value="#E8F0F8" />
+        </Style>
+    </Window.Styles>
 
-        <StackPanel Grid.Row="1" Spacing="4">
-            <TextBlock Text="Minecraft 目录:" />
-            <TextBox Text="{Binding McFolder}" IsReadOnly="True" />
-        </StackPanel>
+    <Grid RowDefinitions="Auto,*">
+        <!-- 顶部导航栏 -->
+        <Border Grid.Row="0" Background="#2581E8" Height="48" Padding="80,0,16,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Grid.Column="0" Text="PCL II" Foreground="White" FontSize="20"
+                    FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,32,0" />
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="8">
-            <StackPanel Grid.Column="0" Spacing="4">
-                <TextBlock Text="版本:" />
-                <TextBox Text="{Binding VersionName}" />
-            </StackPanel>
-            <StackPanel Grid.Column="1" Spacing="4">
-                <TextBlock Text="玩家名:" />
-                <TextBox Text="{Binding PlayerName}" />
-            </StackPanel>
-        </Grid>
-
-        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="8">
-            <ScrollViewer>
-                <TextBlock Text="{Binding LogOutput}" FontFamily="Menlo,Consolas,monospace" FontSize="12" TextWrapping="Wrap" />
-            </ScrollViewer>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="24"
+                    VerticalAlignment="Center">
+                    <Button Content="启动" Background="Transparent" Foreground="White"
+                        BorderThickness="0" FontSize="14" FontWeight="Bold" />
+                    <Button Content="下载" Background="Transparent" Foreground="White"
+                        BorderThickness="0" FontSize="14" />
+                    <Button Content="设置" Background="Transparent" Foreground="White"
+                        BorderThickness="0" FontSize="14" />
+                    <Button Content="更多" Background="Transparent" Foreground="White"
+                        BorderThickness="0" FontSize="14" />
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <Button Grid.Row="4" Content="启动" Command="{Binding LaunchCommand}"
-                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                IsEnabled="{Binding !IsBusy}" />
+        <!-- 主体区域 -->
+        <Grid Grid.Row="1" ColumnDefinitions="220,*">
+            <!-- 左侧菜单栏 -->
+            <Border Grid.Column="0" Background="#E8F0F8" Padding="16,24">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Minecraft" Foreground="#666" FontSize="12" FontWeight="Bold"
+                        Margin="0,0,0,8" />
+                    <Button Content="自动安装" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left" Background="Transparent"
+                        BorderThickness="0" Foreground="#333" />
+                    <Button Content="手动安装" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left" Background="Transparent"
+                        BorderThickness="0" Foreground="#333" />
+
+                    <TextBlock Text="资源" Foreground="#666" FontSize="12" FontWeight="Bold"
+                        Margin="0,16,0,8" />
+                    <Button Content="Mod" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left" Background="Transparent"
+                        BorderThickness="0" Foreground="#333" />
+                    <Button Content="整合包" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left" Background="Transparent"
+                        BorderThickness="0" Foreground="#333" />
+                </StackPanel>
+            </Border>
+
+            <!-- 右侧内容区 -->
+            <Grid Grid.Column="1" Margin="16" RowDefinitions="Auto,*,Auto">
+                <!-- 输入区 -->
+                <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="20"
+                    Margin="0,0,0,16">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="启动设置" FontSize="18" FontWeight="Bold" Foreground="#333" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="游戏版本" Foreground="#666" FontSize="12" />
+                                <ComboBox ItemsSource="{Binding AvailableVersions}"
+                                    SelectedItem="{Binding VersionName}"
+                                    HorizontalAlignment="Stretch" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="玩家名称" Foreground="#666" FontSize="12" />
+                                <TextBox Text="{Binding PlayerName}" PlaceholderText="输入玩家名"
+                                    HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="游戏目录" Foreground="#666" FontSize="12" />
+                            <TextBox Text="{Binding McFolder}" IsReadOnly="True"
+                                Background="#F5F5F5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 日志区 -->
+                <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16"
+                    Margin="0,0,0,16">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Grid.Row="0" Text="运行日志" FontWeight="Bold" Foreground="#333"
+                            Margin="0,0,0,8" />
+                        <ScrollViewer Grid.Row="1">
+                            <TextBlock Text="{Binding LogOutput}"
+                                FontFamily="Menlo,Consolas,monospace" FontSize="12"
+                                Foreground="#444" TextWrapping="Wrap" />
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <!-- 启动按钮 -->
+                <Button Grid.Row="2" Content="启动游戏" Command="{Binding LaunchCommand}"
+                    Background="#2581E8" Foreground="White" FontSize="16" FontWeight="Bold"
+                    CornerRadius="8" Height="48" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
+                    <Button.Styles>
+                        <Style Selector="Button:disabled">
+                            <Setter Property="Background" Value="#A0C4F0" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Style>
+                    </Button.Styles>
+                </Button>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

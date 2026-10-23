@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -8,6 +9,8 @@ namespace PCL.Avalonia.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
+    public List<string> AvailableVersions { get; } = new() { "26.2", "26.3-snapshot-3" };
+
     [ObservableProperty]
     public partial string McFolder { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
