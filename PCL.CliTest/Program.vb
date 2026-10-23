@@ -11,7 +11,7 @@ Module Program
         ' 1. 下载（如果本地已有会跳过）
         Console.WriteLine()
         Console.WriteLine("=== 下载模块 ===")
-        Dim dlOptions As New PCL.Launcher.DownloadOptions With {
+        Dim dlOptions As New PCL.Launcher.DownloadCore.DownloadOptions With {
             .McFolder = mcDir,
             .VersionName = version,
             .MaxParallel = 8,
@@ -19,7 +19,7 @@ Module Program
                 Console.WriteLine($"[{stage}] {done}/{total}")
             End Sub
         }
-        Dim dlResult = PCL.Launcher.Downloader.Download(dlOptions)
+        Dim dlResult = PCL.Launcher.DownloadCore.Download(dlOptions)
         Console.WriteLine($"下载结果: {(If(dlResult.Success, "成功", "失败"))} - {dlResult.Message}")
         Console.WriteLine($"  已下载: {dlResult.DownloadedFiles}, 跳过: {dlResult.SkippedFiles}, 失败: {dlResult.FailedFiles}")
 
@@ -33,7 +33,7 @@ Module Program
             .MaxMemoryMb = 2048,
             .TimeoutMs = 15000
         }
-        Dim result = PCL.Launcher.Launcher.Launch(options)
+        Dim result = PCL.Launcher.LaunchCore.Launch(options)
         Console.WriteLine($"启动结果: {(If(result.Success, "成功", "失败"))} - {result.Message}")
         Console.WriteLine($"退出码: {result.ExitCode}")
         Dim outLines = result.Stdout.Split(New Char() {ChrW(10)}, StringSplitOptions.RemoveEmptyEntries)

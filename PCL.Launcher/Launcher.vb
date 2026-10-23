@@ -8,7 +8,7 @@ Imports Newtonsoft.Json.Linq
 ''' 跨平台 Minecraft 启动器核心。
 ''' 从 PCL2 的 Modules 层解析版本 JSON，组装 classpath 和参数，唤起 Java。
 ''' </summary>
-Public Module Launcher
+Public Module LaunchCore
 
     Public Class LaunchOptions
         Public Property McFolder As String

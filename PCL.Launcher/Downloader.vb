@@ -10,7 +10,7 @@ Imports Newtonsoft.Json.Linq
 ''' 最小 Minecraft 下载器：版本 JSON、jar、libraries、assets。
 ''' 不依赖 PCL.Modules 的 UI 进度系统，独立实现。
 ''' </summary>
-Public Module Downloader
+Public Module DownloadCore
 
     Public Class DownloadOptions
         Public Property McFolder As String
