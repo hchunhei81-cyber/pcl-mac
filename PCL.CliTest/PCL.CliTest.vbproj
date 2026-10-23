@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PCL.Modules\PCL.Modules.vbproj" />
+    <ProjectReference Include="..\PCL.Launcher\PCL.Launcher.vbproj" />
   </ItemGroup>
 
   <ItemGroup>
