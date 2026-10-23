@@ -1,4 +1,3 @@
-clear && cat > ~/PCL/pcl-mac/README.md <<'MDEOF'
 # PCL Mac 第三方重构版
 
 > 基于 PCL2 源码的 macOS 第三方重构版本，非官方项目。
