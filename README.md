@@ -89,7 +89,7 @@ UI 框架：Avalonia（替换原 WPF 表示层）
 业务逻辑：复用 PCL2 源码中的 Modules 层，按需解耦
 目标平台：macOS（Apple Silicon / Intel）
 
-##已知限制
+## 已知限制
 正版登录暂不可用（见上方说明）
 部分 Windows 专属功能（注册表、GDI+、NAudio、Windows 任务栏进度条）已用桩替代或排除，详见 docs/porting-notes.md
 Forge 安装依赖官方 installer 的 --installClient 模式，首次安装可能需要几分钟（取决于网络速度）
