@@ -164,10 +164,21 @@ Public Module Launcher
         End If
         gameArgs.AddRange(options.ExtraGameArgs)
 
-        ' 7. Java 路径
+        ' 7. Java 路径：优先用指定的，否则自动检测
         Dim javaPath = options.JavaPath
         If String.IsNullOrEmpty(javaPath) Then
-            javaPath = "/usr/bin/java"
+            ' 从版本 JSON 读 javaVersion.majorVersion
+            Dim requiredMajor As Integer = 0
+            Dim javaVersionObj = TryCast(json("javaVersion"), JObject)
+            If javaVersionObj IsNot Nothing AndAlso javaVersionObj("majorVersion") IsNot Nothing Then
+                Integer.TryParse(javaVersionObj("majorVersion").ToString(), requiredMajor)
+            End If
+            Dim detected = JavaDetector.Detect(requiredMajor)
+            If detected Is Nothing Then
+                result.Message = "未找到可用的 Java，请安装 Java " & requiredMajor & "+"
+                Return result
+            End If
+            javaPath = detected.Path
         End If
 
         ' 8. 启动

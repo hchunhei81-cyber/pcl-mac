@@ -30,7 +30,6 @@ Module Program
             .McFolder = mcDir,
             .VersionName = version,
             .PlayerName = "Player",
-            .JavaPath = "/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home/bin/java",
             .MaxMemoryMb = 2048,
             .TimeoutMs = 15000
         }
