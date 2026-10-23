@@ -45,7 +45,6 @@
             <Setter Property="Background" Value="#E0EAF5" />
         </Style>
 
-        <!-- 下载页 Tab 按钮样式 -->
         <Style Selector="Button.TabBtn">
             <Setter Property="Background" Value="#F0F0F0" />
             <Setter Property="Foreground" Value="#333" />
@@ -57,11 +56,6 @@
             <Setter Property="Foreground" Value="White" />
         </Style>
 
-        <Style Selector="TextBlock.Header">
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Margin" Value="0,16,0,8" />
-        </Style>
         <Style Selector="Border.Card">
             <Setter Property="Background" Value="White" />
             <Setter Property="CornerRadius" Value="8" />
@@ -77,20 +71,11 @@
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <TextBlock Grid.Column="0" Text="PCL Mac 第三方重构版" Foreground="White" FontSize="18"
                     FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,40,0" />
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
-                    VerticalAlignment="Center">
-                    <Button Content="启动" Command="{Binding NavigateCommand}"
-                        CommandParameter="Launch" Classes="NavBtn"
-                        Classes.active="{Binding IsLaunchPage}" />
-                    <Button Content="下载" Command="{Binding NavigateCommand}"
-                        CommandParameter="Download" Classes="NavBtn"
-                        Classes.active="{Binding IsDownloadPage}" />
-                    <Button Content="设置" Command="{Binding NavigateCommand}"
-                        CommandParameter="Settings" Classes="NavBtn"
-                        Classes.active="{Binding IsSettingsPage}" />
-                    <Button Content="更多" Command="{Binding NavigateCommand}" CommandParameter="More"
-                        Classes="NavBtn" Classes.active="{Binding IsMorePage}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Content="启动" Command="{Binding NavigateCommand}" CommandParameter="Launch" Classes="NavBtn" Classes.active="{Binding IsLaunchPage}" />
+                    <Button Content="下载" Command="{Binding NavigateCommand}" CommandParameter="Download" Classes="NavBtn" Classes.active="{Binding IsDownloadPage}" />
+                    <Button Content="设置" Command="{Binding NavigateCommand}" CommandParameter="Settings" Classes="NavBtn" Classes.active="{Binding IsSettingsPage}" />
+                    <Button Content="更多" Command="{Binding NavigateCommand}" CommandParameter="More" Classes="NavBtn" Classes.active="{Binding IsMorePage}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -100,88 +85,74 @@
             <!-- 左侧菜单 -->
             <Border Grid.Column="0" Padding="12,16">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Minecraft" Foreground="#666" FontSize="12" FontWeight="Bold"
-                        Margin="16,0,0,8" />
-                    <Button Content="自动安装" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}"
-                        CommandParameter="Install" />
-                    <Button Content="手动安装" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}"
-                        CommandParameter="Manual" />
-
-                    <TextBlock Text="资源" Foreground="#666" FontSize="12" FontWeight="Bold"
-                        Margin="16,16,0,8" />
-                    <Button Content="Mod" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}"
-                        CommandParameter="Mod" />
-                    <Button Content="整合包" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}"
-                        CommandParameter="Modpack" />
+                    <TextBlock Text="Minecraft" Foreground="#666" FontSize="12" FontWeight="Bold" Margin="16,0,0,8" />
+                    <Button Content="自动安装" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}" CommandParameter="Install" />
+                    <Button Content="手动安装" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}" CommandParameter="Manual" />
+                    <TextBlock Text="资源" Foreground="#666" FontSize="12" FontWeight="Bold" Margin="16,16,0,8" />
+                    <Button Content="Mod" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}" CommandParameter="Mod" />
+                    <Button Content="整合包" Classes="MenuBtn" Command="{Binding NavigateMenuCommand}" CommandParameter="Modpack" />
                 </StackPanel>
             </Border>
 
             <!-- 右侧内容区 -->
             <Grid Grid.Column="1" Margin="16">
-
                 <!-- 1. 启动页面 -->
                 <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="320,*">
-                    <Border Grid.Column="0" Background="White" Padding="16" CornerRadius="8"
-                        BoxShadow="0 2 8 0 #10000000">
+                    <Border Grid.Column="0" Classes="Card">
                         <Grid RowDefinitions="Auto,*,Auto">
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8"
-                                Margin="0,0,0,24">
-                                <Button Content="正版" Classes="NavBtn active" Background="#1171d1"
-                                    Foreground="White" Padding="16,4" />
-                                <Button Content="离线" Classes="NavBtn" Foreground="#666"
-                                    Padding="16,4" />
+                            <!-- 顶部 Tab -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,24">
+                                <Button Content="在线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Online" Classes="TabBtn" Classes.active="{Binding IsOfflineMode, Converter={x:Static BoolConverters.Not}}" />
+                                <Button Content="离线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Offline" Classes="TabBtn" Classes.active="{Binding IsOfflineMode}" />
                             </StackPanel>
+
+                            <!-- 中间头像 -->
                             <StackPanel Grid.Row="1" Spacing="20" VerticalAlignment="Center">
-                                <Border Width="80" Height="80" CornerRadius="40"
-                                    BorderBrush="#1171d1" BorderThickness="2"
-                                    HorizontalAlignment="Center">
-                                    <Path
-                                        Data="M 40,35 A 15,15 0 1 1 40,65 A 15,15 0 1 1 40,35 M 20,80 C 20,65 30,55 40,55 C 50,55 60,65 60,80"
-                                        Fill="#1171d1" Stretch="Uniform" Width="40" Height="40"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Border Width="80" Height="80" CornerRadius="40" BorderBrush="#1171d1" BorderThickness="2" HorizontalAlignment="Center">
+                                    <Path Data="M 40,35 A 15,15 0 1 1 40,65 A 15,15 0 1 1 40,35 M 20,80 C 20,65 30,55 40,55 C 50,55 60,65 60,80" Fill="#1171d1" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                                    <ComboBox Grid.Column="0" PlaceholderText="添加新账号"
-                                        HorizontalAlignment="Stretch" />
-                                    <Button Grid.Column="1" Content="登录" Background="White"
-                                        BorderBrush="#1171d1" Foreground="#1171d1"
-                                        BorderThickness="1" CornerRadius="4" />
-                                </Grid>
-                                <StackPanel Orientation="Horizontal" Spacing="16"
-                                    HorizontalAlignment="Center">
-                                    <TextBlock Text="购买正版" Foreground="#999999" FontSize="12" />
-                                    <TextBlock Text="前往官网" Foreground="#999999" FontSize="12" />
+
+                                <!-- 已登录 -->
+                                <StackPanel IsVisible="{Binding IsLoggedIn}" Spacing="8" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding PlayerName}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LoginStatus}" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
+                                    <Button Content="退出登录" Command="{Binding LogoutCommand}" Background="Transparent" Foreground="#999" BorderThickness="0" />
+                                </StackPanel>
+
+                                <!-- 未登录 -->
+                                <StackPanel IsVisible="{Binding !IsLoggedIn}" Spacing="12">
+                                    <!-- 离线模式 -->
+                                    <StackPanel IsVisible="{Binding IsOfflineMode}" Spacing="12">
+                                        <TextBox Text="{Binding PlayerName}" PlaceholderText="输入离线用户名" />
+                                        <Button Content="登录" Command="{Binding LoginCommand}" Background="#1171d1" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                    
+                                    <!-- 在线模式 -->
+                                    <StackPanel IsVisible="{Binding !IsOfflineMode}" Spacing="12">
+                                        <TextBlock Text="微软正版登录开发中，敬请期待..." Foreground="#999" HorizontalAlignment="Center" />
+                                        <Button Content="登录" Command="{Binding LoginCommand}" Background="#CCCCCC" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
+
+                            <!-- 底部版本和启动按钮 -->
                             <StackPanel Grid.Row="2" Spacing="8">
-                                <ComboBox ItemsSource="{Binding AvailableVersions}"
-                                    SelectedItem="{Binding VersionName}"
-                                    HorizontalAlignment="Stretch" />
-                                <Button Command="{Binding LaunchCommand}" Background="White"
-                                    BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4"
-                                    Padding="0,8" HorizontalAlignment="Stretch"
-                                    IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
+                                <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding VersionName}" HorizontalAlignment="Stretch" />
+                                <Button Command="{Binding LaunchCommand}" Background="White" BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4" Padding="0,8" HorizontalAlignment="Stretch" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
                                     <StackPanel Spacing="2">
-                                        <TextBlock Text="启动游戏" Foreground="#1171d1"
-                                            FontWeight="Bold" HorizontalAlignment="Center" />
-                                        <TextBlock Text="{Binding VersionName}" Foreground="#666666"
-                                            FontSize="11" HorizontalAlignment="Center" />
+                                        <TextBlock Text="启动游戏" Foreground="#1171d1" FontWeight="Bold" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding VersionName}" Foreground="#666666" FontSize="11" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                    <Button Grid.Column="0" Content="刷新版本"
-                                        Command="{Binding RefreshVersionsCommand}"
-                                        Background="White" BorderBrush="#D0D0D0" BorderThickness="1"
-                                        CornerRadius="4" HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Center" />
-                                    <Button Grid.Column="1" Content="版本设置" Background="White"
-                                        BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4"
-                                        HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Center" />
+                                    <Button Grid.Column="0" Content="刷新版本" Command="{Binding RefreshVersionsCommand}" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                    <Button Grid.Column="1" Content="版本设置" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                                 </Grid>
                             </StackPanel>
                         </Grid>
                     </Border>
+
+                    <!-- 右侧背景图 -->
                     <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
@@ -199,16 +170,10 @@
                         <Border Classes="Card">
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                                    <TextBlock Grid.Column="0" Text="最大内存分配"
-                                        VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="0" Text="最大内存分配" VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                        <Slider Width="200" Minimum="1024" Maximum="16384"
-                                            TickFrequency="512" IsSnapToTickEnabled="True"
-                                            Value="{Binding MaxMemoryMb}" />
-                                        <TextBlock
-                                            Text="{Binding MaxMemoryMb, StringFormat={}{0} MB}"
-                                            Width="80" VerticalAlignment="Center"
-                                            TextAlignment="Right" />
+                                        <Slider Width="200" Minimum="1024" Maximum="16384" TickFrequency="512" IsSnapToTickEnabled="True" Value="{Binding MaxMemoryMb}" />
+                                        <TextBlock Text="{Binding MaxMemoryMb, StringFormat={}{0} MB}" Width="80" VerticalAlignment="Center" TextAlignment="Right"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -217,8 +182,7 @@
                         <TextBlock Text="Java 设置" Classes="Header" />
                         <Border Classes="Card">
                             <StackPanel Spacing="12">
-                                <TextBlock Text="自定义 Java 路径（留空则自动检测）" FontSize="12"
-                                    Foreground="#666" />
+                                <TextBlock Text="自定义 Java 路径（留空则自动检测）" FontSize="12" Foreground="#666" />
                                 <TextBox Text="{Binding JavaPath}" PlaceholderText="/path/to/java" />
                             </StackPanel>
                         </Border>
@@ -236,7 +200,7 @@
                                 <Button Content="整合包" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Modpack" Classes="TabBtn" Classes.active="{Binding IsDownloadModpackTab}" />
                             </StackPanel>
 
-                            <!-- 版本下载列表（自动安装） -->
+                            <!-- 版本下载列表 -->
                             <Grid Grid.Row="1" IsVisible="{Binding IsAutoInstallMode}" RowDefinitions="Auto,*">
                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
                                     <TextBlock Grid.Column="0" Text="{Binding DownloadStatusText}" FontSize="12" Foreground="#999" VerticalAlignment="Center"/>
@@ -254,7 +218,7 @@
                                 </ListBox>
                             </Grid>
 
-                            <!-- 手动安装列表 -->
+                            <!-- 手动导入 -->
                             <Grid Grid.Row="1" IsVisible="{Binding IsManualInstallMode}" RowDefinitions="Auto,Auto,*">
                                 <StackPanel Grid.Row="0" Spacing="12">
                                     <TextBlock Text="手动导入整合包" FontSize="16" FontWeight="Bold" />
@@ -317,8 +281,7 @@
 
                 <!-- 4. 更多页面占位 -->
                 <Grid IsVisible="{Binding IsMorePage}">
-                    <TextBlock Text="更多页面开发中..." HorizontalAlignment="Center"
-                        VerticalAlignment="Center" FontSize="20" Foreground="#999" />
+                    <TextBlock Text="更多页面开发中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="#999" />
                 </Grid>
             </Grid>
         </Grid>

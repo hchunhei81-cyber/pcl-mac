@@ -45,6 +45,15 @@ public partial class MainViewModel : ViewModelBase
     public partial string PlayerName { get; set; } = "Player";
 
     [ObservableProperty]
+    public partial bool IsOfflineMode { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsLoggedIn { get; set; } = false;
+
+    [ObservableProperty]
+    public partial string LoginStatus { get; set; } = "未登录";
+
+    [ObservableProperty]
     public partial string LogOutput { get; set; } = "";
 
     [ObservableProperty]
@@ -263,6 +272,41 @@ public partial class MainViewModel : ViewModelBase
             SearchProjectType = "modpack";
             _ = SearchResourcesAsync();
         }
+    }
+
+    [RelayCommand]
+    private void SwitchLoginMode(string mode)
+    {
+        IsOfflineMode = mode == "Offline";
+        IsLoggedIn = false;
+        LoginStatus = "未登录";
+    }
+
+    [RelayCommand]
+    private void Login()
+    {
+        if (string.IsNullOrWhiteSpace(PlayerName))
+        {
+            LoginStatus = "请输入玩家名";
+            return;
+        }
+
+        if (IsOfflineMode)
+        {
+            IsLoggedIn = true;
+            LoginStatus = $"已登录为离线账户: {PlayerName}";
+        }
+        else
+        {
+            LoginStatus = "微软在线登录开发中，敬请期待...";
+        }
+    }
+
+    [RelayCommand]
+    private void Logout()
+    {
+        IsLoggedIn = false;
+        LoginStatus = "未登录";
     }
 
     [RelayCommand]
