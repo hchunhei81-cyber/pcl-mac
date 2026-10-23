@@ -3,16 +3,29 @@ Imports System.IO
 
 Module Program
     Sub Main(args As String())
-        Console.WriteLine("=== PCL macOS CLI 启动验证（使用 PCL.Launcher）===")
+        Console.WriteLine("=== PCL macOS CLI 验证 ===")
 
         Dim mcDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support", "minecraft")
         Dim version = "26.2"
 
-        If Not Directory.Exists(Path.Combine(mcDir, "versions", version)) Then
-            Console.WriteLine($"[FAIL] 版本目录不存在: {Path.Combine(mcDir, "versions", version)}")
-            Return
-        End If
+        ' 1. 下载（如果本地已有会跳过）
+        Console.WriteLine()
+        Console.WriteLine("=== 下载模块 ===")
+        Dim dlOptions As New PCL.Launcher.DownloadOptions With {
+            .McFolder = mcDir,
+            .VersionName = version,
+            .MaxParallel = 8,
+            .ProgressCallback = Sub(stage, done, total)
+                Console.WriteLine($"[{stage}] {done}/{total}")
+            End Sub
+        }
+        Dim dlResult = PCL.Launcher.Downloader.Download(dlOptions)
+        Console.WriteLine($"下载结果: {(If(dlResult.Success, "成功", "失败"))} - {dlResult.Message}")
+        Console.WriteLine($"  已下载: {dlResult.DownloadedFiles}, 跳过: {dlResult.SkippedFiles}, 失败: {dlResult.FailedFiles}")
 
+        ' 2. 启动
+        Console.WriteLine()
+        Console.WriteLine("=== 启动 ===")
         Dim options As New PCL.Launcher.LaunchOptions With {
             .McFolder = mcDir,
             .VersionName = version,
@@ -21,22 +34,13 @@ Module Program
             .MaxMemoryMb = 2048,
             .TimeoutMs = 15000
         }
-
-        Console.WriteLine($"[INFO] MC 目录: {options.McFolder}")
-        Console.WriteLine($"[INFO] 版本: {options.VersionName}")
-        Console.WriteLine("[INFO] 启动中...")
-
         Dim result = PCL.Launcher.Launcher.Launch(options)
-
-        Console.WriteLine()
-        Console.WriteLine($"=== 结果: {(If(result.Success, "成功", "失败"))} ===")
-        Console.WriteLine($"消息: {result.Message}")
+        Console.WriteLine($"启动结果: {(If(result.Success, "成功", "失败"))} - {result.Message}")
         Console.WriteLine($"退出码: {result.ExitCode}")
-        Console.WriteLine()
-        Console.WriteLine("=== stdout（前 15 行）===")
         Dim outLines = result.Stdout.Split(New Char() {ChrW(10)}, StringSplitOptions.RemoveEmptyEntries)
-        For i = 0 To Math.Min(14, outLines.Length - 1)
-            Console.WriteLine(outLines(i))
+        Console.WriteLine("stdout 前 5 行:")
+        For i = 0 To Math.Min(4, outLines.Length - 1)
+            Console.WriteLine("  " & outLines(i))
         Next
     End Sub
 End Module
