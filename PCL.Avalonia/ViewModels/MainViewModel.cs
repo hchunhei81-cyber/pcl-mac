@@ -237,10 +237,36 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ConfirmUpdate()
+    private async Task ConfirmUpdateAsync()
     {
-        IsUpdatePopupVisible = false;
-        AppendLog("[Test] 用户已确认更新，正在模拟下载...");
+        if (string.IsNullOrEmpty(PendingDownloadUrl))
+        {
+            IsUpdatePopupVisible = false;
+            return;
+        }
+
+        UpdatePopupTitle = "正在下载更新...";
+        UpdatePopupMessage = "请稍候，更新完成后程序将自动重启。";
+
+        try
+        {
+            var success = await Task.Run(() => PCL.Launcher.AutoUpdater.ApplyUpdate(PendingDownloadUrl));
+            if (success)
+            {
+                // 更新脚本已启动，立即退出当前进程，让脚本接管
+                Environment.Exit(0);
+            }
+            else
+            {
+                UpdatePopupTitle = "更新失败";
+                UpdatePopupMessage = "无法执行自动替换，请手动前往 GitHub Release 下载。";
+            }
+        }
+        catch (Exception ex)
+        {
+            UpdatePopupTitle = "更新异常";
+            UpdatePopupMessage = ex.Message;
+        }
     }
 
     [RelayCommand]
