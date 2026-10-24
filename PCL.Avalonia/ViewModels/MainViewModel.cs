@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -47,6 +48,9 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string NewInstanceName { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string SkinPathInput { get; set; } = "";
 
     [ObservableProperty]
     public partial string SelectedBaseVersion { get; set; } = "";
@@ -212,6 +216,35 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string PendingDownloadUrl { get; set; } = "";
+
+    [RelayCommand]
+    private void ImportSkin()
+    {
+        if (string.IsNullOrWhiteSpace(SkinPathInput))
+        {
+            AppendLog("请输入皮肤图片路径");
+            return;
+        }
+
+        // 找到当前选中的实例路径
+        var inst = Instances.FirstOrDefault(x => x.Name == VersionName);
+        if (inst == null)
+        {
+            AppendLog("请先选择一个独立实例");
+            return;
+        }
+
+        var success = PCL.Launcher.SkinManager.SaveLocalSkin(inst.Path, SkinPathInput);
+        if (success)
+        {
+            AppendLog($"皮肤已成功导入到 {inst.Name}");
+            SkinPathInput = "";
+        }
+        else
+        {
+            AppendLog("皮肤导入失败，请检查文件路径是否正确");
+        }
+    }
 
     [RelayCommand]
     private void CreateInstance()

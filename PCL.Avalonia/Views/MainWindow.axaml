@@ -66,7 +66,7 @@
     </Window.Styles>
 
     <Grid RowDefinitions="48,*">
-        <!-- 顶部导航 -->
+        <!-- 顶部导航栏 -->
         <Border Grid.Row="0" Background="#1171d1" Padding="80,0,16,0">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <TextBlock Grid.Column="0" Text="PCL Mac 第三方重构版" Foreground="White" FontSize="18"
@@ -101,6 +101,7 @@
             </Grid>
         </Border>
 
+        <!-- 主体区域 -->
         <Grid Grid.Row="1" ColumnDefinitions="320,*">
             <!-- 左侧菜单 -->
             <Border Grid.Column="0" Padding="12,16">
@@ -116,20 +117,24 @@
 
             <!-- 右侧内容区 -->
             <Grid Grid.Column="1" Margin="16">
-                <!-- 1. 启动页面 -->
-                <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="320,*">
+                <!-- 启动页面 -->
+                <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="360,*">
+                    <!-- 左侧启动卡片 -->
                     <Border Grid.Column="0" Classes="Card">
-                        <Grid RowDefinitions="Auto,*,Auto">
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,24">
-                                <Button Content="在线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Online" Classes="TabBtn" Classes.active="{Binding IsOfflineMode, Converter={x:Static BoolConverters.Not}}" />
-                                <Button Content="离线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Offline" Classes="TabBtn" Classes.active="{Binding IsOfflineMode}" />
-                            </StackPanel>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="16">
+                                <!-- 在线/离线 Tab -->
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="在线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Online" Classes="TabBtn" Classes.active="{Binding IsOfflineMode, Converter={x:Static BoolConverters.Not}}" />
+                                    <Button Content="离线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Offline" Classes="TabBtn" Classes.active="{Binding IsOfflineMode}" />
+                                </StackPanel>
 
-                            <StackPanel Grid.Row="1" Spacing="20" VerticalAlignment="Center">
-                                <Border Width="80" Height="80" CornerRadius="40" BorderBrush="#1171d1" BorderThickness="2" HorizontalAlignment="Center">
+                                <!-- 头像 -->
+                                <Border Width="80" Height="80" CornerRadius="40" BorderBrush="#1171d1" BorderThickness="2" HorizontalAlignment="Center" Margin="0,16">
                                     <Path Data="M 40,35 A 15,15 0 1 1 40,65 A 15,15 0 1 1 40,35 M 20,80 C 20,65 30,55 40,55 C 50,55 60,65 60,80" Fill="#1171d1" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
 
+                                <!-- 登录区 -->
                                 <StackPanel IsVisible="{Binding IsLoggedIn}" Spacing="8" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding PlayerName}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding LoginStatus}" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
@@ -148,26 +153,38 @@
                                         <Button Content="登录 (开发中)" IsEnabled="False" Background="#CCCCCC" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
                                     </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
 
-                            <StackPanel Grid.Row="2" Spacing="8">
-                                <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding VersionName}" HorizontalAlignment="Stretch" />
-                                <Button Command="{Binding LaunchCommand}" Background="White" BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4" Padding="0,8" HorizontalAlignment="Stretch" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock Text="启动游戏" Foreground="#1171d1" FontWeight="Bold" HorizontalAlignment="Center" />
-                                        <TextBlock Text="{Binding VersionName}" Foreground="#666666" FontSize="11" HorizontalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                    <Button Grid.Column="0" Content="刷新版本" Command="{Binding RefreshVersionsCommand}" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-                                    <Button Grid.Column="1" Content="版本设置" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-                                </Grid>
+                                <Separator Background="#E0E0E0" Margin="0,8"/>
+
+                                <!-- 启动控制区 -->
+                                <StackPanel Spacing="8">
+                                    <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding VersionName}" HorizontalAlignment="Stretch" />
+                                    <Button Command="{Binding LaunchCommand}" Background="White" BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4" Padding="0,8" HorizontalAlignment="Stretch" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="启动游戏" Foreground="#1171d1" FontWeight="Bold" HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding VersionName}" Foreground="#666666" FontSize="11" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                        <Button Grid.Column="0" Content="刷新版本" Command="{Binding RefreshVersionsCommand}" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                        <Button Grid.Column="1" Content="版本设置" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+
+                                <Separator Background="#E0E0E0" Margin="0,8"/>
+
+                                <!-- 皮肤导入 -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="导入本地皮肤 (离线模式)" FontSize="11" FontWeight="Bold" Foreground="#666"/>
+                                    <TextBox Text="{Binding SkinPathInput}" PlaceholderText="PNG 绝对路径" FontSize="12"/>
+                                    <Button Content="导入皮肤" Command="{Binding ImportSkinCommand}" Background="#E0EAF5" Foreground="#1171d1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" CornerRadius="4" />
+                                </StackPanel>
                             </StackPanel>
-                        </Grid>
+                        </ScrollViewer>
                     </Border>
-                    
+
                     <!-- 右侧实例列表 -->
-                    <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8" ClipToBounds="True" Background="White" BoxShadow="0 2 8 0 #10000000">
+                    <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8" Background="White" BoxShadow="0 2 8 0 #10000000">
                         <Grid RowDefinitions="Auto,*">
                             <TextBlock Grid.Row="0" Text="实例列表" FontSize="18" FontWeight="Bold" Margin="16,16,16,8" />
                             <ListBox Grid.Row="1" ItemsSource="{Binding Instances}" Background="Transparent" BorderThickness="0" Margin="8,0">
@@ -186,7 +203,7 @@
                     </Border>
                 </Grid>
 
-                <!-- 2. 设置页面 -->
+                <!-- 设置页面 -->
                 <ScrollViewer IsVisible="{Binding IsSettingsPage}">
                     <StackPanel>
                         <TextBlock Text="启动设置" FontSize="16" FontWeight="Bold" Margin="0,16,0,8" />
@@ -211,9 +228,8 @@
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- 3. 下载/资源页面 -->
+                <!-- 下载/资源页面 -->
                 <Grid IsVisible="{Binding IsDownloadPage}" ColumnDefinitions="*,320" ClipToBounds="True">
-                    <!-- 左侧内容区 -->
                     <Border Grid.Column="0" Classes="Card" Padding="20" Margin="0,0,16,0">
                         <Grid RowDefinitions="Auto,Auto,Auto,*">
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
@@ -289,7 +305,6 @@
                         </Grid>
                     </Border>
 
-                    <!-- 右侧预览 -->
                     <Border Grid.Column="1" Classes="Card" Padding="20" IsVisible="{Binding IsAutoInstallMode}">
                         <StackPanel Spacing="16">
                             <TextBlock Text="预览" FontSize="18" FontWeight="Bold" Foreground="#333" />
@@ -308,12 +323,12 @@
                     </Border>
                 </Grid>
 
-                <!-- 4. 更多页面占位 -->
+                <!-- 更多页面 -->
                 <Grid IsVisible="{Binding IsMorePage}">
                     <TextBlock Text="更多页面开发中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="#999" />
                 </Grid>
 
-                <!-- 更新弹窗遮罩 -->
+                <!-- 更新弹窗 -->
                 <Border Grid.RowSpan="2" IsVisible="{Binding IsUpdatePopupVisible}" Background="#80000000" ZIndex="100">
                     <Border Background="White" CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 8 24 0 #40000000">
                         <StackPanel Spacing="16">
