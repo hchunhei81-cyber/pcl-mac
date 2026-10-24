@@ -204,6 +204,14 @@ public partial class MainViewModel : ViewModelBase
         await LaunchAsync();
     }
 
+    
+
+    
+
+    
+
+    
+
     [RelayCommand]
     private void OpenSelectedFolder()
     {
@@ -350,18 +358,32 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task SearchResourcesAsync()
     {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            SearchStatus = "请输入搜索关键词";
+            return;
+        }
+
         if (IsSearching) return;
         IsSearching = true;
         SearchStatus = "正在搜索...";
         SearchResults.Clear();
+        
         try
         {
-            var list = await Task.Run(() => PCL.Launcher.ModrinthApi.Search(SearchQuery, SearchProjectType, 20));
+            var list = await Task.Run(() => PCL.Launcher.ModrinthApi.Search(SearchQuery, SearchProjectType, 50));
             foreach (var r in list) SearchResults.Add(r);
             SearchStatus = $"找到 {list.Count} 个结果";
         }
-        catch (Exception ex) { SearchStatus = $"失败: {ex.Message}"; }
-        finally { IsSearching = false; }
+        catch (Exception ex) 
+        { 
+            SearchStatus = $"搜索失败: {ex.Message}";
+            AppendLog($"[搜索错误] {ex.Message}");
+        }
+        finally 
+        { 
+            IsSearching = false; 
+        }
     }
 
     [RelayCommand]
@@ -616,5 +638,140 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
+    
+
+    
+
+    
+
+    [RelayCommand]
+    private async Task InstallModAsync(PCL.Launcher.ModrinthApi.SearchResult result)
+    {
+        if (SelectedInstance == null)
+        {
+            AppendLog("请先在右侧选择一个实例，再安装 Mod");
+            return;
+        }
+
+        AppendLog($"准备安装 Mod: {result.Title} 到实例 {SelectedInstance.Name}");
+        try
+        {
+            // 简单判断加载器，如果是原版就不限制
+            string loader = "fabric"; // 默认用 fabric
+            if (SelectedInstance.BaseVersion.Contains("forge")) loader = "forge";
+
+            var url = await Task.Run(() => PCL.Launcher.ModrinthApi.GetDownloadUrl(result.Id, SelectedInstance.BaseVersion, loader));
+            
+            if (string.IsNullOrEmpty(url))
+            {
+                AppendLog("未找到兼容当前版本和加载器的文件");
+                return;
+            }
+
+            using var client = new System.Net.Http.HttpClient();
+            var bytes = await client.GetByteArrayAsync(url);
+            
+            var modsDir = Path.Combine(SelectedInstance.Path, "mods");
+            if (!Directory.Exists(modsDir)) Directory.CreateDirectory(modsDir);
+            
+            // 取 URL 里的文件名
+            var fileName = url.Split('/').Last();
+            var destPath = Path.Combine(modsDir, fileName);
+            
+            await File.WriteAllBytesAsync(destPath, bytes);
+            AppendLog($"✓ 成功安装 Mod: {fileName}");
+            
+            // 刷新 Mod 列表
+            RefreshCurrentMods();
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"安装 Mod 失败: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteInstance()
+    {
+        if (SelectedInstance == null) return;
+        var success = PCL.Launcher.InstanceManager.DeleteInstance(McFolder, SelectedInstance.Name);
+        if (success)
+        {
+            AppendLog($"✓ 已删除实例: {SelectedInstance.Name}");
+            SelectedInstance = null;
+            RefreshVersions();
+        }
+        else AppendLog("删除实例失败，请检查文件夹是否被占用");
+    }
+
+    [RelayCommand]
+    private void RenameInstance(string newName)
+    {
+        if (SelectedInstance == null || string.IsNullOrWhiteSpace(newName)) return;
+        if (newName == SelectedInstance.Name) return;
+
+        var success = PCL.Launcher.InstanceManager.RenameInstance(McFolder, SelectedInstance.Name, newName);
+        if (success)
+        {
+            AppendLog($"✓ 已将实例重命名为: {newName}");
+            RefreshVersions();
+            SelectedInstance = Instances.FirstOrDefault(x => x.Name == newName);
+        }
+        else AppendLog("重命名失败，新名称可能已存在");
+    }
+
+    [RelayCommand]
+    private void ToggleMod(PCL.Launcher.ModScanner.ModInfo? mod)
+    {
+        if (mod == null) return;
+        try
+        {
+            if (mod.IsEnabled)
+            {
+                var newPath = mod.FullPath + ".disabled";
+                File.Move(mod.FullPath, newPath);
+                AppendLog($"已禁用 Mod: {mod.FileName}");
+            }
+            else
+            {
+                var newPath = mod.FullPath.Replace(".disabled", "");
+                File.Move(mod.FullPath, newPath);
+                AppendLog($"已启用 Mod: {mod.FileName}");
+            }
+            RefreshCurrentMods();
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"操作失败: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteMod(PCL.Launcher.ModScanner.ModInfo? mod)
+    {
+        if (mod == null) return;
+        try
+        {
+            File.Delete(mod.FullPath);
+            AppendLog($"已删除 Mod: {mod.FileName}");
+            RefreshCurrentMods();
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"删除失败: {ex.Message}");
+        }
+    }
+
+    private void RefreshCurrentMods()
+    {
+        CurrentMods.Clear();
+        if (SelectedInstance != null)
+        {
+            var mods = PCL.Launcher.ModScanner.ScanMods(SelectedInstance.Path);
+            foreach (var m in mods) CurrentMods.Add(m);
+        }
+    }
+
     private void AppendLog(string line) => LogOutput += line + Environment.NewLine;
+
 }

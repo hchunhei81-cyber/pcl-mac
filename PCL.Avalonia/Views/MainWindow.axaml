@@ -195,18 +195,44 @@
                         </Border>
 
                         <Border Grid.Column="1" Classes="Card">
-                            <Grid RowDefinitions="Auto,Auto,*">
+                            <Grid RowDefinitions="Auto,Auto,Auto,*">
                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,16,16,8">
                                     <TextBlock Grid.Column="0" Text="{Binding SelectedInstance.Name, FallbackValue='未选择实例'}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Content="打开文件夹" Command="{Binding OpenSelectedFolderCommand}" Background="#E0EAF5" Foreground="#1171d1" CornerRadius="4" Padding="12,4" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="打开" Command="{Binding OpenSelectedFolderCommand}" Background="#E0EAF5" Foreground="#1171d1" CornerRadius="4" Padding="12,4" />
+                                        <Button Content="删除" Command="{Binding DeleteInstanceCommand}" Background="#FFEBEE" Foreground="#C62828" CornerRadius="4" Padding="12,4" />
+                                    </StackPanel>
                                 </Grid>
-                                <TextBlock Grid.Row="1" Text="Mod 列表" FontSize="14" FontWeight="Bold" Margin="16,8,16,8" />
-                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+
+                                <!-- 重命名输入框 -->
+                                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="16,0,16,8" IsVisible="{Binding SelectedInstance, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <TextBox Grid.Column="0" x:Name="RenameBox" Text="{Binding SelectedInstance.Name}" Margin="0,0,8,0" Height="32" />
+                                    <Button Grid.Column="1" Content="重命名" 
+                                            Command="{Binding RenameInstanceCommand}" 
+                                            CommandParameter="{Binding #RenameBox.Text}" 
+                                            Background="#F0F0F0" Foreground="#333" CornerRadius="4" Padding="12,4" />
+                                </Grid>
+                                <TextBlock Grid.Row="2" Text="Mod 列表" FontSize="14" FontWeight="Bold" Margin="16,8,16,8" />
+                                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl ItemsSource="{Binding CurrentMods}" Margin="16,0,16,16">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Background="#F9F9F9" CornerRadius="4" Padding="8" Margin="0,0,0,4">
-                                                    <TextBlock Text="{Binding FileName}" FontSize="12" />
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                                        <StackPanel Grid.Column="0" Spacing="2">
+                                                            <TextBlock Text="{Binding FileName}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="已禁用" Foreground="#FF8C00" FontSize="10" IsVisible="{Binding !IsEnabled}" />
+                                                        </StackPanel>
+                                                        
+                                                        <Button Grid.Column="1" Content="禁用" Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).ToggleModCommand}" CommandParameter="{Binding}" 
+                                                                IsVisible="{Binding IsEnabled}" Background="#E0EAF5" Foreground="#1171d1" CornerRadius="4" Padding="6,2" FontSize="10" />
+                                                        
+                                                        <Button Grid.Column="1" Content="启用" Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).ToggleModCommand}" CommandParameter="{Binding}" 
+                                                                IsVisible="{Binding !IsEnabled}" Background="#E8F5E9" Foreground="#2E7D32" CornerRadius="4" Padding="6,2" FontSize="10" />
+                                                        
+                                                        <Button Grid.Column="2" Content="删除" Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).DeleteModCommand}" CommandParameter="{Binding}" 
+                                                                Background="#FFEBEE" Foreground="#C62828" CornerRadius="4" Padding="6,2" FontSize="10" />
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -248,8 +274,8 @@
                         <Grid RowDefinitions="Auto,Auto,Auto,*">
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
                                 <Button Content="版本下载" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Install" Classes="TabBtn" Classes.active="{Binding IsDownloadInstallTab}" />
-                                <Button Content="Mod" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Mod" Classes="TabBtn" Classes.active="{Binding IsDownloadModTab}" />
-                                <Button Content="整合包" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Modpack" Classes="TabBtn" Classes.active="{Binding IsDownloadModpackTab}" />
+                                <Button Content="Mod" IsEnabled="False" ToolTip.Tip="需要代理访问 Modrinth API" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Mod" Classes="TabBtn" Classes.active="{Binding IsDownloadModTab}" />
+                                <Button Content="整合包" IsEnabled="False" ToolTip.Tip="需要代理访问 Modrinth API" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Modpack" Classes="TabBtn" Classes.active="{Binding IsDownloadModpackTab}" />
                             </StackPanel>
 
                             <Grid Grid.Row="1" IsVisible="{Binding IsAutoInstallMode}" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
@@ -291,22 +317,41 @@
                                         <x:String>resourcepack</x:String>
                                         <x:String>shader</x:String>
                                     </ComboBox>
-                                    <TextBox Grid.Column="1" Text="{Binding SearchQuery}" PlaceholderText="输入关键词搜索" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="输入关键词搜索" Margin="0,0,8,0"/>
                                     <Button Grid.Column="2" Content="搜索" Command="{Binding SearchResourcesCommand}" Background="#1171d1" Foreground="White" CornerRadius="4" Padding="12,4" />
                                 </Grid>
                                 <TextBlock Grid.Row="1" Text="{Binding SearchStatus}" FontSize="11" Foreground="#999" Margin="0,0,0,8" />
-                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl ItemsSource="{Binding SearchResults}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Padding="12" Margin="0,0,0,8" Background="#F9F9F9" CornerRadius="6">
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <StackPanel Grid.Column="0" Spacing="4">
-                                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14" TextWrapping="Wrap"/>
-                                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#666" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock Text="{Binding Author}" FontSize="11" Foreground="#999"/>
+                                                    <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="12">
+                                                        <!-- 1. 左侧图标 -->
+                                                        <Border Grid.Column="0" Width="64" Height="64" CornerRadius="8" Background="#E0E0E0" ClipToBounds="True" VerticalAlignment="Top">
+                                                            <Panel>
+                                                                <!-- 占位背景 -->
+                                                                <TextBlock Text="无图" Foreground="#999" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                <!-- 网络图片，如果 URL 为空或不合法则不显示 -->
+                                                                <Image Source="{Binding IconUrl}" Stretch="UniformToFill" />
+                                                            </Panel>
+                                                        </Border>
+
+                                                        <!-- 2. 中间文字 -->
+                                                        <StackPanel Grid.Column="1" Spacing="4">
+                                                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="15" TextWrapping="Wrap"/>
+                                                            <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#666" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding Author, StringFormat='作者: {0}'}" FontSize="11" Foreground="#999"/>
                                                         </StackPanel>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Downloads, StringFormat='{}{0:N0} 下载'}" FontSize="11" Foreground="#999" VerticalAlignment="Bottom"/>
+
+                                                        <!-- 3. 右侧操作 -->
+                                                        <StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Downloads, StringFormat='{}{0:N0} 下载'}" FontSize="11" Foreground="#999" HorizontalAlignment="Right"/>
+                                                            <Button Content="安装" 
+                                                                    Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).InstallModCommand}" 
+                                                                    CommandParameter="{Binding}"
+                                                                    Background="#1171d1" Foreground="White" CornerRadius="4" Padding="16,6" FontSize="12" />
+                                                        </StackPanel>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>

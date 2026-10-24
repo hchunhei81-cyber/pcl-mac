@@ -79,4 +79,54 @@ Public Module InstanceManager
         End Try
     End Function
 
+
+    ' <summary>
+    ' 删除独立实例。
+    ' </summary>
+    Public Function DeleteInstance(mcFolder As String, instanceName As String) As Boolean
+        Try
+            Dim versionDir = Path.Combine(mcFolder, "versions", instanceName)
+            If Directory.Exists(versionDir) Then
+                Directory.Delete(versionDir, True)
+            End If
+            Return True
+        Catch ex As Exception
+            Console.WriteLine($"删除实例失败: {ex.Message}")
+            Return False
+        End Try
+    End Function
+
+    ' <summary>
+    ' 重命名独立实例。
+    ' </summary>
+    Public Function RenameInstance(mcFolder As String, oldName As String, newName As String) As Boolean
+        Try
+            Dim oldDir = Path.Combine(mcFolder, "versions", oldName)
+            Dim newDir = Path.Combine(mcFolder, "versions", newName)
+            
+            If Not Directory.Exists(oldDir) Then Return False
+            If Directory.Exists(newDir) Then Return False ' 新名字已被占用
+
+            ' 1. 移动文件夹
+            Directory.Move(oldDir, newDir)
+
+            ' 2. 重命名里面的 json 文件
+            Dim oldJson = Path.Combine(newDir, oldName & ".json")
+            Dim newJson = Path.Combine(newDir, newName & ".json")
+            If File.Exists(oldJson) Then
+                File.Move(oldJson, newJson)
+                
+                ' 3. 更新 json 里的 id
+                Dim json = JObject.Parse(File.ReadAllText(newJson))
+                json("id") = newName
+                File.WriteAllText(newJson, json.ToString())
+            End If
+
+            Return True
+        Catch ex As Exception
+            Console.WriteLine($"重命名实例失败: {ex.Message}")
+            Return False
+        End Try
+    End Function
+
 End Module
