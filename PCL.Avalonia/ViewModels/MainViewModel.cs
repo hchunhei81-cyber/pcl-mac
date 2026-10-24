@@ -43,6 +43,13 @@ public partial class MainViewModel : ViewModelBase
     }
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
+    public ObservableCollection<PCL.Launcher.InstanceManager.InstanceInfo> Instances { get; } = new();
+
+    [ObservableProperty]
+    public partial string NewInstanceName { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string SelectedBaseVersion { get; set; } = "";
 
     [ObservableProperty]
     public partial string? VersionName { get; set; }
@@ -205,6 +212,28 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string PendingDownloadUrl { get; set; } = "";
+
+    [RelayCommand]
+    private void CreateInstance()
+    {
+        if (string.IsNullOrWhiteSpace(NewInstanceName) || string.IsNullOrWhiteSpace(SelectedBaseVersion))
+        {
+            AppendLog("请填写实例名称和基础版本");
+            return;
+        }
+
+        var success = PCL.Launcher.InstanceManager.CreateInstance(McFolder, NewInstanceName, SelectedBaseVersion);
+        if (success)
+        {
+            AppendLog($"已创建独立实例: {NewInstanceName}");
+            RefreshVersions();
+            NewInstanceName = "";
+        }
+        else
+        {
+            AppendLog("创建失败，实例可能已存在");
+        }
+    }
 
     [RelayCommand]
     private async Task ShowTestUpdateAsync()
