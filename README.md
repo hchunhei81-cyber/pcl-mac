@@ -4,7 +4,7 @@
 
 ## 下载
 
-最新版本：[PCL Mac v1.0.0 (macOS ARM64)](https://github.com/hchunhei81-cyber/pcl-mac/releases)
+最新版本：[PCL Mac v1.0.1 (macOS ARM64)](https://github.com/hchunhei81-cyber/pcl-mac/releases/tag/v1.0.1-mac)
 
 ## 这是什么
 
