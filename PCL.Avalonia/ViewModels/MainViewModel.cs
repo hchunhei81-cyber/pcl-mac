@@ -247,6 +247,21 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void OpenFolder(PCL.Launcher.InstanceManager.InstanceInfo inst)
+    {
+        if (inst == null) return;
+        try
+        {
+            // 用 macOS 的 open 命令打开 Finder
+            System.Diagnostics.Process.Start("open", inst.Path);
+        }
+        catch (Exception ex)
+        {
+            AppendLog($"打开文件夹失败: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
     private void CreateInstance()
     {
         if (string.IsNullOrWhiteSpace(NewInstanceName) || string.IsNullOrWhiteSpace(SelectedBaseVersion))

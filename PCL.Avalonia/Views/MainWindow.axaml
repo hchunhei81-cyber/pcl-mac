@@ -191,10 +191,16 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <Border Padding="8" CornerRadius="4" Margin="0,0,0,4">
-                                            <StackPanel Spacing="4">
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" />
-                                                <TextBlock Text="{Binding BaseVersion, StringFormat='基础版本: {0}'}" FontSize="12" Foreground="#666" IsVisible="{Binding IsIndependent}" />
-                                            </StackPanel>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel Grid.Column="0" Spacing="4">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" />
+                                                    <TextBlock Text="{Binding BaseVersion, StringFormat='基础版本: {0}'}" FontSize="12" Foreground="#666" IsVisible="{Binding IsIndependent}" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="打开" 
+                                                        Command="{Binding $parent[ListBox].((vm:MainViewModel)DataContext).OpenFolderCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        Background="#E0EAF5" Foreground="#1171d1" CornerRadius="4" Padding="12,4" VerticalAlignment="Center" />
+                                            </Grid>
                                         </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
