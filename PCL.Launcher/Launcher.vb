@@ -4,10 +4,6 @@ Imports System.Collections.Generic
 Imports System.Diagnostics
 Imports Newtonsoft.Json.Linq
 
-''' <summary>
-''' 跨平台 Minecraft 启动器核心。
-''' 从 PCL2 的 Modules 层解析版本 JSON，组装 classpath 和参数，唤起 Java。
-''' </summary>
 Public Module LaunchCore
 
     Public Class LaunchOptions
@@ -29,9 +25,6 @@ Public Module LaunchCore
         Public Property Stderr As String
     End Class
 
-    ''' <summary>
-    ''' 启动 Minecraft。阻塞直到进程退出或超时。
-    ''' </summary>
     Public Function Launch(options As LaunchOptions) As LaunchResult
         Dim result As New LaunchResult()
 
@@ -47,7 +40,15 @@ Public Module LaunchCore
             Return result
         End If
 
-        ' 2. 用 PCL.Modules 解析版本
+        ' 2. 确定游戏工作目录 (独立实例 or 全局)
+        Dim gameDir As String = options.McFolder
+        Dim instanceJson = Path.Combine(versionDir, "PCL", "instance.json")
+        If File.Exists(instanceJson) Then
+            ' 如果是独立实例，工作目录指向实例文件夹
+            gameDir = versionDir
+        End If
+
+        ' 3. 用 PCL.Modules 解析版本
         PCL.McFolderSelected = PathUtils.AddSlashSuffix(options.McFolder)
         Dim inst As New PCL.McInstance(options.VersionName)
         If Not inst.Check() Then
@@ -58,7 +59,7 @@ Public Module LaunchCore
         Dim json = loaded.JsonObject
         Dim mainClass = json("mainClass").ToString()
 
-        ' 3. 拼 classpath
+        ' 4. 拼 classpath
         Dim libsDir = Path.Combine(options.McFolder, "libraries")
         Dim cpParts As New List(Of String)
         For Each libItem As JToken In CType(json("libraries"), JArray)
@@ -79,7 +80,7 @@ Public Module LaunchCore
         End If
         cpParts.Add(versionJar)
 
-        ' 4. 替换占位符
+        ' 5. 替换占位符
         Dim nativesDir = Path.Combine(Path.GetTempPath(), "pcl-natives-" & Guid.NewGuid().ToString("N").Substring(0, 8))
         Directory.CreateDirectory(nativesDir)
 
@@ -90,10 +91,10 @@ Public Module LaunchCore
             {"${launcher_version}", "1.0"},
             {"${auth_player_name}", options.PlayerName},
             {"${version_name}", options.VersionName},
-            {"${game_directory}", options.McFolder},
+            {"${game_directory}", gameDir}, ' <--- 这里使用独立工作目录
             {"${assets_root}", Path.Combine(options.McFolder, "assets")},
             {"${assets_index_name}", json("assetIndex")("id").ToString()},
-            {"${auth_uuid}", Guid.NewGuid().ToString("N")},
+            {"${auth_uuid}", OfflineAuth.GetOfflineUuid(options.PlayerName)},
             {"${auth_access_token}", "0"},
             {"${clientid}", "0"},
             {"${auth_xuid}", "0"},
@@ -110,7 +111,7 @@ Public Module LaunchCore
             Return s
         End Function
 
-        ' 5. JVM 参数（含 -Xmx）
+        ' 6. JVM 参数（含 -Xmx）
         Dim jvmArgs As New List(Of String)
         jvmArgs.Add($"-Xmx{options.MaxMemoryMb}M")
         jvmArgs.AddRange(options.ExtraJvmArgs)
@@ -138,7 +139,7 @@ Public Module LaunchCore
             Next
         End If
 
-        ' 6. Game 参数
+        ' 7. Game 参数
         Dim gameArgs As New List(Of String)
         Dim gameArr = TryCast(json("arguments")?("game"), JArray)
         If gameArr IsNot Nothing Then
@@ -164,10 +165,9 @@ Public Module LaunchCore
         End If
         gameArgs.AddRange(options.ExtraGameArgs)
 
-        ' 7. Java 路径：优先用指定的，否则自动检测
+        ' 8. Java 路径：优先用指定的，否则自动检测
         Dim javaPath = options.JavaPath
         If String.IsNullOrEmpty(javaPath) Then
-            ' 从版本 JSON 读 javaVersion.majorVersion
             Dim requiredMajor As Integer = 0
             Dim javaVersionObj = TryCast(json("javaVersion"), JObject)
             If javaVersionObj IsNot Nothing AndAlso javaVersionObj("majorVersion") IsNot Nothing Then
@@ -181,7 +181,7 @@ Public Module LaunchCore
             javaPath = detected.Path
         End If
 
-        ' 8. 启动
+        ' 9. 启动
         Dim psi As New ProcessStartInfo()
         psi.FileName = javaPath
         For Each a In jvmArgs
@@ -191,7 +191,7 @@ Public Module LaunchCore
         For Each a In gameArgs
             psi.ArgumentList.Add(a)
         Next
-        psi.WorkingDirectory = options.McFolder
+        psi.WorkingDirectory = gameDir ' <--- 确保进程在实例目录运行
         psi.RedirectStandardOutput = True
         psi.RedirectStandardError = True
         psi.UseShellExecute = False
@@ -226,9 +226,6 @@ Public Module LaunchCore
         Return result
     End Function
 
-    ''' <summary>
-    ''' 评估 library/argument 的 rules，返回是否适用于当前平台（macOS arm64）。
-    ''' </summary>
     Private Function EvaluateRules(obj As JObject) As Boolean
         Dim rules = TryCast(obj("rules"), JArray)
         If rules Is Nothing Then Return True

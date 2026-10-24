@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using Avalonia.Media.Imaging;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -11,19 +16,11 @@ namespace PCL.Avalonia.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial string CurrentPage { get; set; } = "Launch";
-
+    [ObservableProperty] public partial string CurrentPage { get; set; } = "Launch";
     public bool IsLaunchPage => CurrentPage == "Launch";
     public bool IsDownloadPage => CurrentPage == "Download";
     public bool IsSettingsPage => CurrentPage == "Settings";
     public bool IsMorePage => CurrentPage == "More";
-
-    partial void OnPlayerNameChanged(string value) => SaveConfig();
-    partial void OnVersionNameChanged(string? value) => SaveConfig();
-    partial void OnMaxMemoryMbChanged(int value) => SaveConfig();
-    partial void OnJavaPathChanged(string value) => SaveConfig();
-    partial void OnIsOfflineModeChanged(bool value) => SaveConfig();
 
     partial void OnCurrentPageChanged(string value)
     {
@@ -33,140 +30,80 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsMorePage));
     }
 
-    [ObservableProperty]
-    public partial string McFolder { get; set; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        "Library", "Application Support", "minecraft");
-
-    partial void OnMcFolderChanged(string value)
-    {
-        RefreshVersions();
-    }
+    [ObservableProperty] public partial string McFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support", "minecraft");
+    partial void OnMcFolderChanged(string value) => RefreshVersions();
 
     public ObservableCollection<string> AvailableVersions { get; } = new();
     public ObservableCollection<PCL.Launcher.InstanceManager.InstanceInfo> Instances { get; } = new();
+    public ObservableCollection<PCL.Launcher.ModScanner.ModInfo> CurrentMods { get; } = new();
 
-    [ObservableProperty]
-    public partial string NewInstanceName { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string SkinPathInput { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string SelectedBaseVersion { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string? VersionName { get; set; }
-
-    [ObservableProperty]
-    public partial string PlayerName { get; set; } = "Player";
-
-    [ObservableProperty]
-    public partial bool IsOfflineMode { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool IsLoggedIn { get; set; } = false;
-
-    [ObservableProperty]
-    public partial string LoginStatus { get; set; } = "未登录";
-
-    [ObservableProperty]
-    public partial string LogOutput { get; set; } = "";
-
-    [ObservableProperty]
-    public partial bool IsBusy { get; set; } = false;
-
-    [ObservableProperty]
-    public partial bool IsUpdatePopupVisible { get; set; } = false;
-
-    [ObservableProperty]
-    public partial string UpdatePopupTitle { get; set; } = "发现新版本";
-
-    [ObservableProperty]
-    public partial string UpdatePopupMessage { get; set; } = "";
-
-    [ObservableProperty]
-    public partial int MaxMemoryMb { get; set; } = 2048;
-
-    [ObservableProperty]
-    public partial string JavaPath { get; set; } = "";
-
-    // 下载页相关
-    public ObservableCollection<PCL.Launcher.VersionManifest.VersionInfo> DownloadVersions { get; } = new();
-
-    [ObservableProperty]
-    public partial bool IsFetchingVersions { get; set; } = false;
-
-    [ObservableProperty]
-    public partial string DownloadStatusText { get; set; } = "点击刷新获取版本列表";
-
-    [ObservableProperty]
-    public partial bool IsUsingMirror { get; set; } = true; // 默认用镜像
-
-    [ObservableProperty]
-    public partial double DownloadProgress { get; set; } = 0;
-
-    [ObservableProperty]
-    public partial string FabricInstallStatus { get; set; } = "";
-
-    [ObservableProperty]
-    public partial bool IsInstallingFabric { get; set; } = false;
-
-    [ObservableProperty]
-    public partial string ForgeInstallStatus { get; set; } = "";
-
-    [ObservableProperty]
-    public partial bool IsInstallingForge { get; set; } = false;
-
-    [ObservableProperty]
-    public partial PCL.Launcher.VersionManifest.VersionInfo? SelectedDownloadVersion { get; set; }
-
-    partial void OnSelectedDownloadVersionChanged(PCL.Launcher.VersionManifest.VersionInfo? value)
+    [ObservableProperty] public partial PCL.Launcher.InstanceManager.InstanceInfo? SelectedInstance { get; set; }
+    partial void OnSelectedInstanceChanged(PCL.Launcher.InstanceManager.InstanceInfo? value)
     {
-        if (value != null)
+        CurrentMods.Clear();
+        if (value != null) 
         {
-            DownloadStatusText = $"已选择版本: {value.Id} ({value.Type})";
+            AppendLog($"已选中实例: {value.Name}");
+            var mods = PCL.Launcher.ModScanner.ScanMods(value.Path);
+            foreach (var m in mods) CurrentMods.Add(m);
+
+            // 加载已有皮肤预览
+            var skinPath = Path.Combine(value.Path, "PCL", "skin.png");
+            if (File.Exists(skinPath))
+            {
+                try { SkinPreviewImage = new Bitmap(skinPath); }
+                catch { SkinPreviewImage = null; }
+            }
+            else
+            {
+                SkinPreviewImage = null;
+            }
+        }
+        else
+        {
+            SkinPreviewImage = null;
         }
     }
 
-    // 资源搜索相关
+    [ObservableProperty] public partial string? VersionName { get; set; }
+    [ObservableProperty] public partial string PlayerName { get; set; } = "Player";
+    [ObservableProperty] public partial string LogOutput { get; set; } = "";
+    [ObservableProperty] public partial bool IsBusy { get; set; } = false;
+    [ObservableProperty] public partial int MaxMemoryMb { get; set; } = 2048;
+    [ObservableProperty] public partial string JavaPath { get; set; } = "";
+    [ObservableProperty] public partial bool IsOfflineMode { get; set; } = true;
+    [ObservableProperty] public partial bool IsLoggedIn { get; set; } = false;
+    [ObservableProperty] public partial string LoginStatus { get; set; } = "未登录";
+    [ObservableProperty] public partial string SkinPathInput { get; set; } = "";
+    [ObservableProperty] public partial Bitmap? SkinPreviewImage { get; set; }
+    [ObservableProperty] public partial string NewInstanceName { get; set; } = "";
+    [ObservableProperty] public partial string SelectedBaseVersion { get; set; } = "";
+
+    // 下载相关
+    public ObservableCollection<PCL.Launcher.VersionManifest.VersionInfo> DownloadVersions { get; } = new();
+    [ObservableProperty] public partial bool IsFetchingVersions { get; set; } = false;
+    [ObservableProperty] public partial string DownloadStatusText { get; set; } = "点击刷新获取版本列表";
+    [ObservableProperty] public partial bool IsUsingMirror { get; set; } = true;
+    [ObservableProperty] public partial double DownloadProgress { get; set; } = 0;
+    [ObservableProperty] public partial PCL.Launcher.VersionManifest.VersionInfo? SelectedDownloadVersion { get; set; }
+    [ObservableProperty] public partial string FabricInstallStatus { get; set; } = "";
+    [ObservableProperty] public partial bool IsInstallingFabric { get; set; } = false;
+    [ObservableProperty] public partial string ForgeInstallStatus { get; set; } = "";
+    [ObservableProperty] public partial bool IsInstallingForge { get; set; } = false;
+
+    // 资源搜索
     public ObservableCollection<PCL.Launcher.ModrinthApi.SearchResult> SearchResults { get; } = new();
-
-    [ObservableProperty]
-    public partial string SearchQuery { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string SearchProjectType { get; set; } = "mod";
-
-    [ObservableProperty]
-    public partial bool IsSearching { get; set; } = false;
-
-    [ObservableProperty]
-    public partial string SearchStatus { get; set; } = "输入关键词搜索";
-
-    [ObservableProperty]
-    public partial bool IsSearchingMode { get; set; } = false;
-
-    [ObservableProperty]
-    public partial bool IsManualInstallMode { get; set; } = false;
-
+    [ObservableProperty] public partial string SearchQuery { get; set; } = "";
+    [ObservableProperty] public partial string SearchProjectType { get; set; } = "mod";
+    [ObservableProperty] public partial bool IsSearching { get; set; } = false;
+    [ObservableProperty] public partial string SearchStatus { get; set; } = "输入关键词搜索";
+    [ObservableProperty] public partial bool IsSearchingMode { get; set; } = false;
+    [ObservableProperty] public partial bool IsManualInstallMode { get; set; } = false;
     public bool IsAutoInstallMode => !IsSearchingMode && !IsManualInstallMode;
     public bool IsDownloadInstallTab => IsAutoInstallMode;
     public bool IsDownloadModTab => IsSearchingMode && SearchProjectType == "mod";
     public bool IsDownloadModpackTab => IsSearchingMode && SearchProjectType == "modpack";
 
-    partial void OnIsSearchingModeChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsAutoInstallMode));
-        OnPropertyChanged(nameof(IsDownloadInstallTab));
-        OnPropertyChanged(nameof(IsDownloadModTab));
-        OnPropertyChanged(nameof(IsDownloadModpackTab));
-    }
-    partial void OnIsManualInstallModeChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsAutoInstallMode));
-        OnPropertyChanged(nameof(IsDownloadInstallTab));
-    }
     partial void OnSearchProjectTypeChanged(string value)
     {
         OnPropertyChanged(nameof(IsDownloadInstallTab));
@@ -174,15 +111,19 @@ public partial class MainViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsDownloadModpackTab));
     }
 
+    partial void OnIsSearchingModeChanged(bool value) => OnPropertyChanged(nameof(IsAutoInstallMode));
+    partial void OnIsManualInstallModeChanged(bool value) => OnPropertyChanged(nameof(IsAutoInstallMode));
+
     // 手动安装
-    [ObservableProperty]
-    public partial string ImportPath { get; set; } = "";
+    [ObservableProperty] public partial string ImportPath { get; set; } = "";
+    [ObservableProperty] public partial string ImportVersionName { get; set; } = "ImportedPack";
+    [ObservableProperty] public partial string ImportStatus { get; set; } = "";
 
-    [ObservableProperty]
-    public partial string ImportVersionName { get; set; } = "ImportedPack";
-
-    [ObservableProperty]
-    public partial string ImportStatus { get; set; } = "";
+    // 更新弹窗
+    [ObservableProperty] public partial bool IsUpdatePopupVisible { get; set; } = false;
+    [ObservableProperty] public partial string UpdatePopupTitle { get; set; } = "发现新版本";
+    [ObservableProperty] public partial string UpdatePopupMessage { get; set; } = "";
+    [ObservableProperty] public partial string PendingDownloadUrl { get; set; } = "";
 
     public MainViewModel()
     {
@@ -194,93 +135,401 @@ public partial class MainViewModel : ViewModelBase
 
         RefreshVersions();
 
-        // 恢复上次选的版本
         if (!string.IsNullOrEmpty(config.VersionName) && AvailableVersions.Contains(config.VersionName))
-        {
             VersionName = config.VersionName;
-        }
     }
 
     private void SaveConfig()
     {
-        var config = new PCL.Launcher.LauncherConfig
-        {
-            PlayerName = this.PlayerName,
-            VersionName = this.VersionName ?? "",
-            MaxMemoryMb = this.MaxMemoryMb,
-            JavaPath = this.JavaPath,
-            IsOfflineMode = this.IsOfflineMode
-        };
-        config.Save();
+        new PCL.Launcher.LauncherConfig { PlayerName = this.PlayerName, VersionName = this.VersionName ?? "", MaxMemoryMb = this.MaxMemoryMb, JavaPath = this.JavaPath, IsOfflineMode = this.IsOfflineMode }.Save();
     }
 
-    [ObservableProperty]
-    public partial string PendingDownloadUrl { get; set; } = "";
+    partial void OnPlayerNameChanged(string value) => SaveConfig();
+    partial void OnVersionNameChanged(string? value) => SaveConfig();
+    partial void OnMaxMemoryMbChanged(int value) => SaveConfig();
+    partial void OnJavaPathChanged(string value) => SaveConfig();
+    partial void OnIsOfflineModeChanged(bool value) => SaveConfig();
+
+    [RelayCommand]
+    private void RefreshVersions()
+    {
+        AvailableVersions.Clear();
+        Instances.Clear();
+        try
+        {
+            foreach (var v in PCL.Launcher.VersionScanner.ScanVersions(McFolder)) AvailableVersions.Add(v);
+            
+            if (AvailableVersions.Count > 0)
+            {
+                VersionName = AvailableVersions[0];
+                if (string.IsNullOrEmpty(SelectedBaseVersion)) SelectedBaseVersion = AvailableVersions[0];
+            }
+
+            foreach (var inst in PCL.Launcher.InstanceManager.ScanInstances(McFolder)) Instances.Add(inst);
+        }
+        catch (Exception ex) { AppendLog($"[WARN] 扫描失败: {ex.Message}"); }
+    }
+
+    [RelayCommand]
+    private async Task CreateAndLaunchAsync()
+    {
+        if (string.IsNullOrWhiteSpace(NewInstanceName))
+        {
+            AppendLog("请填写实例名称");
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(SelectedBaseVersion))
+        {
+            AppendLog("请选择基础版本");
+            return;
+        }
+
+        // 1. 创建实例（如果已存在则跳过创建，直接进目录）
+        var success = PCL.Launcher.InstanceManager.CreateInstance(McFolder, NewInstanceName, SelectedBaseVersion);
+        if (success)
+        {
+            AppendLog($"成功创建新实例: {NewInstanceName}");
+        }
+        else
+        {
+            AppendLog($"实例 {NewInstanceName} 已存在，将直接启动该实例");
+        }
+
+        // 2. 刷新列表并选中刚创建的实例
+        RefreshVersions();
+        VersionName = NewInstanceName; // 确保启动的是这个新实例
+        SelectedInstance = Instances.FirstOrDefault(x => x.Name == NewInstanceName);
+
+        // 3. 直接调用启动逻辑
+        await LaunchAsync();
+    }
+
+    [RelayCommand]
+    private void OpenSelectedFolder()
+    {
+        var inst = SelectedInstance ?? Instances.FirstOrDefault(x => x.Name == VersionName);
+        if (inst == null) 
+        {
+            AppendLog("未找到对应的实例，请先在列表里选中一个实例");
+            return;
+        }
+
+        // 检查文件夹是否真的存在
+        if (!System.IO.Directory.Exists(inst.Path))
+        {
+            AppendLog($"实例文件夹已不存在: {inst.Path}，已从列表移除");
+            Instances.Remove(inst);
+            if (SelectedInstance == inst) SelectedInstance = null;
+            return;
+        }
+
+        try 
+        { 
+            // 路径包含空格，必须加双引号
+            System.Diagnostics.Process.Start("open", $"\"{inst.Path}\""); 
+            AppendLog($"已打开文件夹: {inst.Path}");
+        }
+        catch (Exception ex) 
+        { 
+            AppendLog($"打开失败: {ex.Message}"); 
+        }
+    }
+
+
+    [RelayCommand]
+    private async Task PickAndImportSkinAsync()
+    {
+        if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var window = desktop.MainWindow;
+            if (window == null) return;
+
+            var topLevel = TopLevel.GetTopLevel(window);
+            if (topLevel?.StorageProvider == null) return;
+
+            // 打开 macOS Finder
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "选择皮肤 PNG 图片",
+                AllowMultiple = false,
+                FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
+            });
+
+            if (files.Count > 0)
+            {
+                var path = files[0].TryGetLocalPath();
+                if (!string.IsNullOrEmpty(path))
+                {
+                    SkinPathInput = path;
+                    try 
+                    {
+                        // 加载预览图
+                        SkinPreviewImage = new Bitmap(path);
+                    }
+                    catch (Exception ex) 
+                    {
+                        AppendLog($"加载预览图失败: {ex.Message}");
+                    }
+                    ImportSkin(); // 选中后自动导入
+                }
+            }
+        }
+    }
 
     [RelayCommand]
     private void ImportSkin()
     {
-        if (string.IsNullOrWhiteSpace(SkinPathInput))
+        if (string.IsNullOrWhiteSpace(SkinPathInput)) 
+        { 
+            AppendLog("请输入皮肤图片路径"); 
+            return; 
+        }
+
+        // 处理 macOS 拖拽可能带的单/双引号，以及 ~ 缩写
+        var rawPath = SkinPathInput.Trim('"', '\'', ' ');
+        var expandedPath = rawPath.StartsWith("~") 
+            ? rawPath.Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)) 
+            : rawPath;
+
+        if (!File.Exists(expandedPath))
         {
-            AppendLog("请输入皮肤图片路径");
+            AppendLog($"找不到皮肤文件: {expandedPath}");
             return;
         }
 
-        // 找到当前选中的实例路径
-        var inst = Instances.FirstOrDefault(x => x.Name == VersionName);
-        if (inst == null)
-        {
-            AppendLog("请先选择一个独立实例");
-            return;
+        // 查找目标实例（优先右侧选中的，其次左侧启动下拉框的）
+        var inst = SelectedInstance ?? Instances.FirstOrDefault(x => x.Name == VersionName);
+        if (inst == null) 
+        { 
+            AppendLog("未找到对应的实例，请先在右侧实例列表选中一个实例"); 
+            return; 
         }
 
-        var success = PCL.Launcher.SkinManager.SaveLocalSkin(inst.Path, SkinPathInput);
-        if (success)
-        {
-            AppendLog($"皮肤已成功导入到 {inst.Name}");
-            SkinPathInput = "";
-        }
-        else
-        {
-            AppendLog("皮肤导入失败，请检查文件路径是否正确");
-        }
-    }
-
-    [RelayCommand]
-    private void OpenFolder(PCL.Launcher.InstanceManager.InstanceInfo inst)
-    {
-        if (inst == null) return;
         try
         {
-            // 用 macOS 的 open 命令打开 Finder
-            System.Diagnostics.Process.Start("open", inst.Path);
+            var pclDir = Path.Combine(inst.Path, "PCL");
+            if (!Directory.Exists(pclDir)) Directory.CreateDirectory(pclDir);
+            
+            var destPath = Path.Combine(pclDir, "skin.png");
+            File.Copy(expandedPath, destPath, true);
+            
+            // 同时写入 CustomSkinLoader 的本地皮肤缓存目录（如果存在）
+            var cslDir = Path.Combine(inst.Path, "CustomSkinLoader", "LocalSkin");
+            if (Directory.Exists(cslDir))
+            {
+                File.Copy(expandedPath, Path.Combine(cslDir, "skin.png"), true);
+                AppendLog($"✓ 皮肤已同时写入 CustomSkinLoader 目录");
+            }
+            
+            AppendLog($"✓ 皮肤已成功导入到实例 [{inst.Name}]");
+            SkinPathInput = ""; // 清空输入框
         }
         catch (Exception ex)
         {
-            AppendLog($"打开文件夹失败: {ex.Message}");
+            AppendLog($"导入失败: {ex.Message}");
         }
     }
 
     [RelayCommand]
-    private void CreateInstance()
+    private async Task FetchDownloadVersionsAsync()
     {
-        if (string.IsNullOrWhiteSpace(NewInstanceName) || string.IsNullOrWhiteSpace(SelectedBaseVersion))
+        if (IsFetchingVersions) return;
+        IsFetchingVersions = true;
+        DownloadStatusText = "正在获取...";
+        DownloadVersions.Clear();
+        try
         {
-            AppendLog("请填写实例名称和基础版本");
+            var list = await Task.Run(() => PCL.Launcher.VersionManifest.FetchMojangVersions());
+            foreach (var v in list) DownloadVersions.Add(v);
+            DownloadStatusText = $"已加载 {list.Count} 个版本";
+        }
+        catch (Exception ex) { DownloadStatusText = $"失败: {ex.Message}"; }
+        finally { IsFetchingVersions = false; }
+    }
+
+    [RelayCommand]
+    private async Task SearchResourcesAsync()
+    {
+        if (IsSearching) return;
+        IsSearching = true;
+        SearchStatus = "正在搜索...";
+        SearchResults.Clear();
+        try
+        {
+            var list = await Task.Run(() => PCL.Launcher.ModrinthApi.Search(SearchQuery, SearchProjectType, 20));
+            foreach (var r in list) SearchResults.Add(r);
+            SearchStatus = $"找到 {list.Count} 个结果";
+        }
+        catch (Exception ex) { SearchStatus = $"失败: {ex.Message}"; }
+        finally { IsSearching = false; }
+    }
+
+    [RelayCommand]
+    private async Task InstallVersionAsync()
+    {
+        if (SelectedDownloadVersion == null) return;
+        DownloadStatusText = $"正在安装 {SelectedDownloadVersion.Id}...";
+        DownloadProgress = 0;
+        try
+        {
+            await Task.Run(() =>
+            {
+                var dlOptions = new PCL.Launcher.DownloadCore.DownloadOptions { McFolder = McFolder, VersionName = SelectedDownloadVersion.Id, MaxParallel = 8, UseMirror = IsUsingMirror, ProgressCallback = (stage, done, total, speed) =>
+                {
+                    DownloadStatusText = $"[{stage}] {done}/{total} - {speed:F1} KB/s";
+                    DownloadProgress = total > 0 ? (double)done / total * 100 : 0;
+                } };
+                var result = PCL.Launcher.DownloadCore.Download(dlOptions);
+                if (!result.Success) throw new Exception(result.Message);
+            });
+            DownloadStatusText = $"{SelectedDownloadVersion.Id} 安装完成！";
+            RefreshVersions();
+        }
+        catch (Exception ex) { DownloadStatusText = $"下载失败: {ex.Message}"; }
+    }
+
+    [RelayCommand]
+    private async Task InstallFabricAsync()
+    {
+        if (SelectedDownloadVersion == null || IsInstallingFabric) return;
+        IsInstallingFabric = true;
+        FabricInstallStatus = "正在安装 Fabric...";
+        try
+        {
+            var options = new PCL.Launcher.FabricInstaller.FabricInstallOptions { McFolder = McFolder, McVersion = SelectedDownloadVersion.Id, JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath };
+            var result = await Task.Run(() => PCL.Launcher.FabricInstaller.Install(options));
+            FabricInstallStatus = result.Message;
+            if (result.Success) RefreshVersions();
+        }
+        catch (Exception ex) { FabricInstallStatus = $"失败: {ex.Message}"; }
+        finally { IsInstallingFabric = false; }
+    }
+
+    [RelayCommand]
+    private async Task InstallForgeAsync()
+    {
+        if (SelectedDownloadVersion == null || IsInstallingForge) return;
+        IsInstallingForge = true;
+        ForgeInstallStatus = "正在安装 Forge...";
+        try
+        {
+            var forgeVersion = $"{SelectedDownloadVersion.Id}-47.2.0";
+            var options = new PCL.Launcher.ForgeInstaller.ForgeInstallOptions { McFolder = McFolder, McVersion = SelectedDownloadVersion.Id, ForgeVersion = forgeVersion, JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath };
+            var result = await Task.Run(() => PCL.Launcher.ForgeInstaller.Install(options));
+            ForgeInstallStatus = result.Message;
+            if (result.Success) RefreshVersions();
+        }
+        catch (Exception ex) { ForgeInstallStatus = $"失败: {ex.Message}"; }
+        finally { IsInstallingForge = false; }
+    }
+
+    [RelayCommand]
+    private async Task ImportPackageAsync()
+    {
+        if (string.IsNullOrEmpty(ImportPath) || string.IsNullOrEmpty(ImportVersionName)) { ImportStatus = "请填写路径和版本名"; return; }
+        ImportStatus = "正在导入...";
+        var success = await Task.Run(() => PCL.Launcher.PackageImporter.ImportPackage(ImportPath, ImportVersionName, McFolder));
+        ImportStatus = success ? "导入成功！" : "导入失败，请查看日志";
+        if (success) { RefreshVersions(); VersionName = ImportVersionName; }
+    }
+
+    [RelayCommand]
+    private void SwitchLoginMode(string mode)
+    {
+        IsOfflineMode = mode == "Offline";
+        IsLoggedIn = false;
+        LoginStatus = "未登录";
+    }
+
+    [RelayCommand]
+    private void Login()
+    {
+        if (IsOfflineMode)
+        {
+            if (string.IsNullOrWhiteSpace(PlayerName)) { LoginStatus = "请输入玩家名"; return; }
+            IsLoggedIn = true;
+            LoginStatus = $"已登录为离线账户: {PlayerName}";
+        }
+        else { LoginStatus = "微软在线登录开发中..."; }
+    }
+
+    [RelayCommand]
+    private void Logout() { IsLoggedIn = false; LoginStatus = "未登录"; }
+
+    [RelayCommand]
+    private void SwitchDownloadTab(string tab)
+    {
+        if (tab == "Install") { IsSearchingMode = false; IsManualInstallMode = false; }
+        else if (tab == "Mod") { IsSearchingMode = true; IsManualInstallMode = false; SearchProjectType = "mod"; _ = SearchResourcesAsync(); }
+        else if (tab == "Modpack") { IsSearchingMode = true; IsManualInstallMode = false; SearchProjectType = "modpack"; _ = SearchResourcesAsync(); }
+    }
+
+    [RelayCommand]
+    private void Navigate(string page) => CurrentPage = page;
+
+    [RelayCommand]
+    private void NavigateMenu(string menu)
+    {
+        if (menu == "Install") { CurrentPage = "Download"; IsSearchingMode = false; IsManualInstallMode = false; }
+        else if (menu == "Manual") { CurrentPage = "Download"; IsSearchingMode = false; IsManualInstallMode = true; }
+        else if (menu == "Mod" || menu == "Modpack")
+        {
+            CurrentPage = "Download";
+            IsSearchingMode = true;
+            IsManualInstallMode = false;
+            SearchProjectType = menu == "Mod" ? "mod" : "modpack";
+            _ = SearchResourcesAsync();
+        }
+    }
+
+
+    [RelayCommand]
+    private async Task LaunchSelectedInstanceAsync()
+    {
+        if (SelectedInstance == null) 
+        {
+            AppendLog("请先点击选中一个实例");
+            return;
+        }
+        
+        if (IsBusy)
+        {
+            AppendLog("程序正在运行中，请等待当前操作完成");
             return;
         }
 
-        var success = PCL.Launcher.InstanceManager.CreateInstance(McFolder, NewInstanceName, SelectedBaseVersion);
-        if (success)
+        AppendLog($"触发双击启动: {SelectedInstance.Name}");
+        // 将当前版本切换为该实例名，然后启动
+        VersionName = SelectedInstance.Name;
+        await LaunchAsync();
+    }
+
+    [RelayCommand]
+    private async Task LaunchAsync()
+    {
+        if (IsBusy || string.IsNullOrEmpty(VersionName)) return;
+
+        IsBusy = true;
+        LogOutput = "";
+        AppendLog($"=== 启动 {VersionName} ===");
+
+        try
         {
-            AppendLog($"已创建独立实例: {NewInstanceName}");
-            RefreshVersions();
-            NewInstanceName = "";
+            AppendLog("--- 下载阶段 ---");
+            var dlOptions = new PCL.Launcher.DownloadCore.DownloadOptions { McFolder = McFolder, VersionName = VersionName, MaxParallel = 8, UseMirror = IsUsingMirror, ProgressCallback = (stage, done, total, speed) => { if (done == total || done % 50 == 0) AppendLog($"[{stage}] {done}/{total} - {speed:F1} KB/s"); } };
+            var dlResult = await Task.Run(() => PCL.Launcher.DownloadCore.Download(dlOptions));
+            AppendLog($"下载结果: {(dlResult.Success ? "成功" : "失败")} - {dlResult.Message}");
+
+            if (!dlResult.Success) { IsBusy = false; return; }
+
+            AppendLog("--- 启动阶段 ---");
+            var launchOptions = new PCL.Launcher.LaunchCore.LaunchOptions { McFolder = McFolder, VersionName = VersionName, PlayerName = PlayerName, JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath, MaxMemoryMb = MaxMemoryMb, TimeoutMs = 0 };
+            var result = await Task.Run(() => PCL.Launcher.LaunchCore.Launch(launchOptions));
+            AppendLog($"启动结果: {(result.Success ? "成功" : "失败")} - {result.Message}");
+            foreach (var line in result.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries)) AppendLog(line);
         }
-        else
-        {
-            AppendLog("创建失败，实例可能已存在");
-        }
+        catch (Exception ex) { AppendLog($"[FAIL] {ex.GetType().Name}: {ex.Message}"); }
+        finally { IsBusy = false; }
     }
 
     [RelayCommand]
@@ -314,25 +563,19 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void CancelUpdate() => IsUpdatePopupVisible = false;
+
+    [RelayCommand]
     private async Task ConfirmUpdateAsync()
     {
-        if (string.IsNullOrEmpty(PendingDownloadUrl))
-        {
-            IsUpdatePopupVisible = false;
-            return;
-        }
-
+        if (string.IsNullOrEmpty(PendingDownloadUrl)) { IsUpdatePopupVisible = false; return; }
         UpdatePopupTitle = "正在下载更新...";
         UpdatePopupMessage = "请稍候，更新完成后程序将自动重启。";
 
         try
         {
             var success = await Task.Run(() => PCL.Launcher.AutoUpdater.ApplyUpdate(PendingDownloadUrl));
-            if (success)
-            {
-                // 更新脚本已启动，立即退出当前进程，让脚本接管
-                Environment.Exit(0);
-            }
+            if (success) { Environment.Exit(0); }
             else
             {
                 UpdatePopupTitle = "更新失败";
@@ -347,385 +590,31 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void CancelUpdate()
+    private async Task CopyLogAsync()
     {
-        IsUpdatePopupVisible = false;
-        AppendLog("[Test] 用户取消了更新。");
-    }
-
-    [RelayCommand]
-    private void RefreshVersions()
-    {
-        AvailableVersions.Clear();
         try
         {
-            var list = PCL.Launcher.VersionScanner.ScanVersions(McFolder);
-            foreach (var v in list) AvailableVersions.Add(v);
+            // macOS 原生剪贴板命令
+            using var proc = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("pbcopy") 
+            { 
+                RedirectStandardInput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
             
-            VersionName = AvailableVersions.Count > 0 ? AvailableVersions[0] : null;
-        }
-        catch (Exception ex)
-        {
-            AppendLog($"[WARN] 扫描版本失败: {ex.Message}");
-        }
-    }
-
-    [RelayCommand]
-    private async Task FetchDownloadVersionsAsync()
-    {
-        if (IsFetchingVersions) return;
-        IsFetchingVersions = true;
-        DownloadStatusText = "正在获取版本列表...";
-        DownloadVersions.Clear();
-        try
-        {
-            var list = await Task.Run(() => PCL.Launcher.VersionManifest.FetchMojangVersions());
-            foreach (var v in list) DownloadVersions.Add(v);
-            DownloadStatusText = $"已加载 {list.Count} 个版本";
-        }
-        catch (Exception ex)
-        {
-            DownloadStatusText = $"获取失败: {ex.Message}";
-        }
-        finally
-        {
-            IsFetchingVersions = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task SearchResourcesAsync()
-    {
-        if (IsSearching) return;
-        IsSearching = true;
-        SearchStatus = "正在搜索...";
-        SearchResults.Clear();
-        try
-        {
-            var list = await Task.Run(() => PCL.Launcher.ModrinthApi.Search(SearchQuery, SearchProjectType, 20));
-            foreach (var r in list) SearchResults.Add(r);
-            SearchStatus = $"找到 {list.Count} 个结果";
-        }
-        catch (Exception ex)
-        {
-            SearchStatus = $"搜索失败: {ex.Message}";
-        }
-        finally
-        {
-            IsSearching = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task InstallFabricAsync()
-    {
-        if (SelectedDownloadVersion == null || IsInstallingFabric) return;
-        IsInstallingFabric = true;
-        FabricInstallStatus = "正在安装 Fabric...";
-
-        try
-        {
-            var options = new PCL.Launcher.FabricInstaller.FabricInstallOptions
+            if (proc != null)
             {
-                McFolder = McFolder,
-                McVersion = SelectedDownloadVersion.Id,
-                JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath
-            };
-            var result = await Task.Run(() => PCL.Launcher.FabricInstaller.Install(options));
-            FabricInstallStatus = result.Message;
-
-            if (result.Success)
-            {
-                RefreshVersions();
+                await proc.StandardInput.WriteAsync(LogOutput);
+                proc.StandardInput.Close();
+                proc.WaitForExit();
+                AppendLog("【提示】日志已成功复制到剪贴板！");
             }
         }
         catch (Exception ex)
         {
-            FabricInstallStatus = $"安装失败: {ex.Message}";
-        }
-        finally
-        {
-            IsInstallingFabric = false;
+            AppendLog($"复制日志失败: {ex.Message}");
         }
     }
 
-    [RelayCommand]
-    private async Task InstallForgeAsync()
-    {
-        if (SelectedDownloadVersion == null || IsInstallingForge) return;
-        IsInstallingForge = true;
-        ForgeInstallStatus = "正在安装 Forge...";
-
-        try
-        {
-            // 这里先硬编码一个推荐版本，实际应该从 Forge Maven 查询最新版
-            var forgeVersion = $"{SelectedDownloadVersion.Id}-47.2.0";
-            var options = new PCL.Launcher.ForgeInstaller.ForgeInstallOptions
-            {
-                McFolder = McFolder,
-                McVersion = SelectedDownloadVersion.Id,
-                ForgeVersion = forgeVersion,
-                JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath
-            };
-            var result = await Task.Run(() => PCL.Launcher.ForgeInstaller.Install(options));
-            ForgeInstallStatus = result.Message;
-
-            if (result.Success)
-            {
-                RefreshVersions();
-            }
-        }
-        catch (Exception ex)
-        {
-            ForgeInstallStatus = $"安装失败: {ex.Message}";
-        }
-        finally
-        {
-            IsInstallingForge = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task InstallVersionAsync()
-    {
-        if (SelectedDownloadVersion == null) return;
-        DownloadStatusText = $"正在安装 {SelectedDownloadVersion.Id}...";
-        await Task.Run(() =>
-        {
-            var dlOptions = new PCL.Launcher.DownloadCore.DownloadOptions
-            {
-                McFolder = McFolder,
-                VersionName = SelectedDownloadVersion.Id,
-                MaxParallel = 8,
-                UseMirror = IsUsingMirror,
-                ProgressCallback = (stage, done, total, speed) =>
-                {
-                    DownloadStatusText = $"[{stage}] {done}/{total} - {speed:F1} KB/s";
-                    DownloadProgress = total > 0 ? (double)done / total * 100 : 0;
-                }
-            };
-            PCL.Launcher.DownloadCore.Download(dlOptions);
-        });
-        DownloadStatusText = $"{SelectedDownloadVersion.Id} 安装完成！";
-        RefreshVersions();
-    }
-
-    [RelayCommand]
-    private async Task ImportPackageAsync()
-    {
-        if (string.IsNullOrEmpty(ImportPath) || string.IsNullOrEmpty(ImportVersionName))
-        {
-            ImportStatus = "请填写路径和版本名";
-            return;
-        }
-        ImportStatus = "正在导入...";
-        var success = await Task.Run(() => PCL.Launcher.PackageImporter.ImportPackage(ImportPath, ImportVersionName, McFolder));
-        ImportStatus = success ? "导入成功！" : "导入失败，请查看日志";
-        if (success)
-        {
-            RefreshVersions();
-            VersionName = ImportVersionName;
-        }
-    }
-
-    [RelayCommand]
-    private void SwitchDownloadTab(string tab)
-    {
-        if (tab == "Install")
-        {
-            IsSearchingMode = false;
-            IsManualInstallMode = false;
-        }
-        else if (tab == "Mod")
-        {
-            IsSearchingMode = true;
-            IsManualInstallMode = false;
-            SearchProjectType = "mod";
-            _ = SearchResourcesAsync();
-        }
-        else if (tab == "Modpack")
-        {
-            IsSearchingMode = true;
-            IsManualInstallMode = false;
-            SearchProjectType = "modpack";
-            _ = SearchResourcesAsync();
-        }
-    }
-
-    [RelayCommand]
-    private void SwitchLoginMode(string mode)
-    {
-        IsOfflineMode = mode == "Offline";
-        IsLoggedIn = false;
-        LoginStatus = "未登录";
-    }
-
-    [ObservableProperty]
-    public partial string DeviceCodeMessage { get; set; } = "";
-
-    [ObservableProperty]
-    public partial bool IsDeviceCodeVisible { get; set; } = false;
-
-    [RelayCommand]
-    private async Task LoginAsync()
-    {
-        if (IsOfflineMode)
-        {
-            if (string.IsNullOrWhiteSpace(PlayerName))
-            {
-                LoginStatus = "请输入玩家名";
-                return;
-            }
-            IsLoggedIn = true;
-            LoginStatus = $"已登录为离线账户: {PlayerName}";
-            return;
-        }
-
-        // 在线登录
-        LoginStatus = "正在获取设备代码...";
-        IsDeviceCodeVisible = true;
-        DeviceCodeMessage = "正在请求微软授权...";
-
-        try
-        {
-            var code = await Task.Run(() => PCL.Launcher.MicrosoftAuth.RequestDeviceCode());
-            DeviceCodeMessage = code.Message;
-            LoginStatus = "等待用户授权...";
-
-            // 复制代码到剪贴板（可选）或提示用户
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(code.VerificationUri) { UseShellExecute = true });
-
-            // 轮询 Token
-            var msToken = await Task.Run(() => PCL.Launcher.MicrosoftAuth.PollForToken(code.DeviceCode, code.Interval, code.ExpiresIn));
-            LoginStatus = "正在验证 Xbox 和 Minecraft 账号...";
-            IsDeviceCodeVisible = false;
-
-            // 换取 MC Token
-            var result = await Task.Run(() => PCL.Launcher.MicrosoftAuth.AuthenticateMinecraft(msToken));
-            if (result.Success)
-            {
-                IsLoggedIn = true;
-                PlayerName = result.PlayerName;
-                LoginStatus = $"已登录为正版账户: {PlayerName}";
-                // 这里可以存 result.AccessToken 和 result.Uuid 以便启动时使用
-            }
-            else
-            {
-                LoginStatus = result.Message;
-            }
-        }
-        catch (Exception ex)
-        {
-            LoginStatus = $"登录失败: {ex.Message}";
-            IsDeviceCodeVisible = false;
-        }
-    }
-
-    [RelayCommand]
-    private void Logout()
-    {
-        IsLoggedIn = false;
-        LoginStatus = "未登录";
-    }
-
-    [RelayCommand]
-    private void Navigate(string page)
-    {
-        CurrentPage = page;
-    }
-
-    [RelayCommand]
-    private void NavigateMenu(string menu)
-    {
-        if (menu == "Install")
-        {
-            CurrentPage = "Download";
-            IsSearchingMode = false;
-            IsManualInstallMode = false;
-        }
-        else if (menu == "Manual")
-        {
-            CurrentPage = "Download";
-            IsSearchingMode = false;
-            IsManualInstallMode = true;
-        }
-        else if (menu == "Mod" || menu == "Modpack")
-        {
-            CurrentPage = "Download";
-            IsSearchingMode = true;
-            IsManualInstallMode = false;
-            SearchProjectType = menu == "Mod" ? "mod" : "modpack";
-            _ = SearchResourcesAsync();
-        }
-    }
-
-    [RelayCommand]
-    private async Task LaunchAsync()
-    {
-        if (IsBusy || string.IsNullOrEmpty(VersionName)) return;
-        IsBusy = true;
-        LogOutput = "";
-        AppendLog($"=== 启动 {VersionName} ===");
-        AppendLog($"MC 目录: {McFolder}");
-        AppendLog($"玩家名: {PlayerName}");
-        AppendLog($"最大内存: {MaxMemoryMb} MB");
-        AppendLog("");
-
-        try
-        {
-            AppendLog("--- 下载阶段 ---");
-            var dlOptions = new PCL.Launcher.DownloadCore.DownloadOptions
-            {
-                McFolder = McFolder,
-                VersionName = VersionName,
-                MaxParallel = 8,
-                ProgressCallback = (stage, done, total, speed) =>
-                {
-                    if (done == total || done % 50 == 0)
-                        AppendLog($"[{stage}] {done}/{total}");
-                }
-            };
-            var dlResult = await Task.Run(() => PCL.Launcher.DownloadCore.Download(dlOptions));
-            AppendLog($"下载结果: {(dlResult.Success ? "成功" : "失败")} - {dlResult.Message}");
-            AppendLog($"  已下载: {dlResult.DownloadedFiles}, 跳过: {dlResult.SkippedFiles}, 失败: {dlResult.FailedFiles}");
-            AppendLog("");
-
-            if (!dlResult.Success)
-            {
-                IsBusy = false;
-                return;
-            }
-
-            AppendLog("--- 启动阶段 ---");
-            var launchOptions = new PCL.Launcher.LaunchCore.LaunchOptions
-            {
-                McFolder = McFolder,
-                VersionName = VersionName,
-                PlayerName = PlayerName,
-                JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath,
-                MaxMemoryMb = MaxMemoryMb,
-                TimeoutMs = 0
-            };
-            var result = await Task.Run(() => PCL.Launcher.LaunchCore.Launch(launchOptions));
-            AppendLog($"启动结果: {(result.Success ? "成功" : "失败")} - {result.Message}");
-            AppendLog($"退出码: {result.ExitCode}");
-            AppendLog("");
-            AppendLog("--- stdout ---");
-            foreach (var line in result.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                AppendLog(line);
-        }
-        catch (Exception ex)
-        {
-            AppendLog($"[FAIL] {ex.GetType().Name}: {ex.Message}");
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private void AppendLog(string line)
-    {
-        LogOutput += line + Environment.NewLine;
-    }
+    private void AppendLog(string line) => LogOutput += line + Environment.NewLine;
 }

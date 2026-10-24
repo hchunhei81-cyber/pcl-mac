@@ -3,12 +3,12 @@
     xmlns:vm="using:PCL.Avalonia.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+    mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="650"
     x:Class="PCL.Avalonia.Views.MainWindow"
     x:DataType="vm:MainViewModel"
     Icon="/Assets/AppIcon.png"
     Title="PCL Mac 第三方重构版"
-    Width="900" Height="600"
+    Width="1000" Height="650"
     Background="#F3F7FA">
 
     <Design.DataContext>
@@ -31,7 +31,6 @@
             <Setter Property="Background" Value="White" />
             <Setter Property="Foreground" Value="#1171d1" />
         </Style>
-
         <Style Selector="Button.MenuBtn">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#333" />
@@ -44,7 +43,6 @@
         <Style Selector="Button.MenuBtn:pointerover">
             <Setter Property="Background" Value="#E0EAF5" />
         </Style>
-
         <Style Selector="Button.TabBtn">
             <Setter Property="Background" Value="#F0F0F0" />
             <Setter Property="Foreground" Value="#333" />
@@ -55,54 +53,31 @@
             <Setter Property="Background" Value="#1171d1" />
             <Setter Property="Foreground" Value="White" />
         </Style>
-
         <Style Selector="Border.Card">
             <Setter Property="Background" Value="White" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="16" />
-            <Setter Property="Margin" Value="0,0,0,16" />
             <Setter Property="BoxShadow" Value="0 2 8 0 #10000000" />
         </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="48,*">
-        <!-- 顶部导航栏 -->
+        <!-- 顶部导航 -->
         <Border Grid.Row="0" Background="#1171d1" Padding="80,0,16,0">
             <Grid ColumnDefinitions="Auto,*,Auto">
-                <TextBlock Grid.Column="0" Text="PCL Mac 第三方重构版" Foreground="White" FontSize="18"
-                    FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,40,0" />
+                <TextBlock Grid.Column="0" Text="PCL Mac 第三方重构版" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,40,0" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Command="{Binding NavigateCommand}" CommandParameter="Launch" Classes="NavBtn" Classes.active="{Binding IsLaunchPage}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Data="M8,5 L19,12 L8,19 Z" Fill="White" Width="12" Height="12" Stretch="Uniform"/>
-                            <TextBlock Text="启动" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding NavigateCommand}" CommandParameter="Download" Classes="NavBtn" Classes.active="{Binding IsDownloadPage}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Data="M12,3 L12,15 M7,10 L12,15 L17,10 M4,18 L20,18" Stroke="White" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform"/>
-                            <TextBlock Text="下载" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding NavigateCommand}" CommandParameter="Settings" Classes="NavBtn" Classes.active="{Binding IsSettingsPage}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Data="M12,8 A4,4 0 1 1 12,16 A4,4 0 1 1 12,8 M12,2 L12,5 M12,19 L12,22 M2,12 L5,12 M19,12 L22,12" Stroke="White" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform"/>
-                            <TextBlock Text="设置" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding NavigateCommand}" CommandParameter="More" Classes="NavBtn" Classes.active="{Binding IsMorePage}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Path Data="M4,4 L10,4 L10,10 L4,10 Z M14,4 L20,4 L20,10 L14,10 Z M4,14 L10,14 L10,20 L4,20 Z M14,14 L20,14 L20,20 L14,20 Z" Stroke="White" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform"/>
-                            <TextBlock Text="更多" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
+                    <Button Content="启动" Command="{Binding NavigateCommand}" CommandParameter="Launch" Classes="NavBtn" Classes.active="{Binding IsLaunchPage}" />
+                    <Button Content="下载" Command="{Binding NavigateCommand}" CommandParameter="Download" Classes="NavBtn" Classes.active="{Binding IsDownloadPage}" />
+                    <Button Content="设置" Command="{Binding NavigateCommand}" CommandParameter="Settings" Classes="NavBtn" Classes.active="{Binding IsSettingsPage}" />
+                    <Button Content="更多" Command="{Binding NavigateCommand}" CommandParameter="More" Classes="NavBtn" Classes.active="{Binding IsMorePage}" />
                 </StackPanel>
                 <Button Grid.Column="2" Content="检查更新" Command="{Binding ShowTestUpdateCommand}" Background="White" Foreground="#1171d1" CornerRadius="20" Padding="12,6" FontSize="12" />
             </Grid>
         </Border>
 
-        <!-- 主体区域 -->
-        <Grid Grid.Row="1" ColumnDefinitions="320,*">
+        <!-- 主体 -->
+        <Grid Grid.Row="1" ColumnDefinitions="200,*">
             <!-- 左侧菜单 -->
             <Border Grid.Column="0" Padding="12,16">
                 <StackPanel Spacing="4">
@@ -115,105 +90,138 @@
                 </StackPanel>
             </Border>
 
-            <!-- 右侧内容区 -->
+            <!-- 右侧内容 -->
             <Grid Grid.Column="1" Margin="16">
-                <!-- 启动页面 -->
-                <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="360,*">
-                    <!-- 左侧启动卡片 -->
-                    <Border Grid.Column="0" Classes="Card">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Spacing="16">
-                                <!-- 在线/离线 Tab -->
+                <!-- 启动页 -->
+                <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="340,*">
+                    <!-- 左侧卡片 -->
+                    <Border Grid.Column="0" Classes="Card" Margin="0,0,16,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Content="在线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Online" Classes="TabBtn" Classes.active="{Binding IsOfflineMode, Converter={x:Static BoolConverters.Not}}" />
-                                    <Button Content="离线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Offline" Classes="TabBtn" Classes.active="{Binding IsOfflineMode}" />
+                                    <Button Content="在线" Classes="TabBtn" Classes.active="{Binding IsOfflineMode, Converter={x:Static BoolConverters.Not}}" />
+                                    <Button Content="离线" Classes="TabBtn" Classes.active="{Binding IsOfflineMode}" />
                                 </StackPanel>
 
-                                <!-- 头像 -->
                                 <Border Width="80" Height="80" CornerRadius="40" BorderBrush="#1171d1" BorderThickness="2" HorizontalAlignment="Center" Margin="0,16">
                                     <Path Data="M 40,35 A 15,15 0 1 1 40,65 A 15,15 0 1 1 40,35 M 20,80 C 20,65 30,55 40,55 C 50,55 60,65 60,80" Fill="#1171d1" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
 
-                                <!-- 登录区 -->
                                 <StackPanel IsVisible="{Binding IsLoggedIn}" Spacing="8" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding PlayerName}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding LoginStatus}" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
                                     <Button Content="退出登录" Command="{Binding LogoutCommand}" Background="Transparent" Foreground="#999" BorderThickness="0" />
                                 </StackPanel>
 
-                                <StackPanel IsVisible="{Binding !IsLoggedIn}" Spacing="12">
-                                    <StackPanel IsVisible="{Binding IsOfflineMode}" Spacing="12">
+                                <StackPanel IsVisible="{Binding !IsLoggedIn}" Spacing="12" Margin="0,0,0,8">
+                                    <StackPanel IsVisible="{Binding IsOfflineMode}" Spacing="8">
                                         <TextBox Text="{Binding PlayerName}" PlaceholderText="输入离线用户名" />
-                                        <Button Content="登录" Command="{Binding LoginCommand}" Background="#1171d1" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
-                                    </StackPanel>
-                                    
-                                    <StackPanel IsVisible="{Binding !IsOfflineMode}" Spacing="12">
-                                        <TextBlock Text="微软正版登录" Foreground="#666" HorizontalAlignment="Center" />
-                                        <TextBlock Text="由于需要 Azure 客户端 ID 和信用卡验证，正版登录功能暂未开放。" Foreground="#999" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="12" />
-                                        <Button Content="登录 (开发中)" IsEnabled="False" Background="#CCCCCC" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
+                                        <Button Content="登录" Command="{Binding LoginCommand}" Background="#1171d1" Foreground="White" Height="36" CornerRadius="4" HorizontalAlignment="Stretch" />
                                     </StackPanel>
                                 </StackPanel>
 
-                                <Separator Background="#E0E0E0" Margin="0,8"/>
+                                <Separator Background="#E0E0E0" />
 
-                                <!-- 启动控制区 -->
-                                <StackPanel Spacing="8">
-                                    <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding VersionName}" HorizontalAlignment="Stretch" />
-                                    <Button Command="{Binding LaunchCommand}" Background="White" BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4" Padding="0,8" HorizontalAlignment="Stretch" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="启动游戏" Foreground="#1171d1" FontWeight="Bold" HorizontalAlignment="Center" />
-                                            <TextBlock Text="{Binding VersionName}" Foreground="#666666" FontSize="11" HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-                                        <Button Grid.Column="0" Content="刷新版本" Command="{Binding RefreshVersionsCommand}" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-                                        <Button Grid.Column="1" Content="版本设置" Background="White" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-                                    </Grid>
-                                </StackPanel>
+                                <!-- 版本管理与实例创建 -->
+                                <Border Background="#F5F5F5" CornerRadius="6" Padding="12">
+                                    <StackPanel Spacing="12">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <TextBlock Grid.Column="0" Text="新建实例并启动" FontSize="11" FontWeight="Bold" Foreground="#666" VerticalAlignment="Center" />
+                                            <Button Grid.Column="1" Content="刷新版本" Command="{Binding RefreshVersionsCommand}" Background="Transparent" Foreground="#1171d1" FontSize="11" Padding="4,0" />
+                                        </Grid>
+                                        
+                                        <TextBox Text="{Binding NewInstanceName}" PlaceholderText="输入实例名称 (如: 生存1)" FontSize="12" Height="28"/>
+                                        <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding SelectedBaseVersion}" PlaceholderText="选择基础版本" FontSize="12" Height="28"/>
+                                        
+                                        <Button Content="创建并启动游戏" Command="{Binding CreateAndLaunchCommand}" 
+                                                Background="#1171d1" Foreground="White" FontWeight="Bold" Height="36" CornerRadius="4" 
+                                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
+                                                IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}" />
+                                    </StackPanel>
+                                </Border>
 
-                                <Separator Background="#E0E0E0" Margin="0,8"/>
+                                <Separator Background="#E0E0E0" />
 
                                 <!-- 皮肤导入 -->
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="导入本地皮肤 (离线模式)" FontSize="11" FontWeight="Bold" Foreground="#666"/>
-                                    <TextBox Text="{Binding SkinPathInput}" PlaceholderText="PNG 绝对路径" FontSize="12"/>
-                                    <Button Content="导入皮肤" Command="{Binding ImportSkinCommand}" Background="#E0EAF5" Foreground="#1171d1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" CornerRadius="4" />
-                                </StackPanel>
+                                <Border Background="#F5F5F5" CornerRadius="6" Padding="8" Margin="0,0,0,8">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="导入皮肤" FontSize="11" FontWeight="Bold" Foreground="#666"/>
+                                        <Border Width="80" Height="80" CornerRadius="4" Background="#E0E0E0" HorizontalAlignment="Center" ClipToBounds="True">
+                                            <Panel>
+                                                <TextBlock Text="无预览" Foreground="#999" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding SkinPreviewImage, Converter={x:Static ObjectConverters.IsNull}}" />
+                                                <Image Source="{Binding SkinPreviewImage}" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="None" />
+                                            </Panel>
+                                        </Border>
+                                        <Button Content="浏览并导入皮肤" Command="{Binding PickAndImportSkinCommand}" Background="#E0EAF5" Foreground="#1171d1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" CornerRadius="4" Height="32" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 运行日志区 -->
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                                    <TextBlock Grid.Column="0" Text="运行日志" FontSize="11" FontWeight="Bold" Foreground="#666" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="复制日志" Command="{Binding CopyLogCommand}" Background="Transparent" Foreground="#1171d1" FontSize="11" Padding="4,0" />
+                                </Grid>
+                                <Border Background="#1E1E1E" CornerRadius="4" Height="140">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <TextBlock Text="{Binding LogOutput}" Foreground="#DDDDDD" FontFamily="Menlo,Consolas,monospace" FontSize="11" TextWrapping="Wrap" Padding="8"/>
+                                    </ScrollViewer>
+                                </Border>
                             </StackPanel>
                         </ScrollViewer>
                     </Border>
 
-                    <!-- 右侧实例列表 -->
-                    <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8" Background="White" BoxShadow="0 2 8 0 #10000000">
-                        <Grid RowDefinitions="Auto,*">
-                            <TextBlock Grid.Row="0" Text="实例列表" FontSize="18" FontWeight="Bold" Margin="16,16,16,8" />
-                            <ListBox Grid.Row="1" ItemsSource="{Binding Instances}" Background="Transparent" BorderThickness="0" Margin="8,0">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Padding="8" CornerRadius="4" Margin="0,0,0,4">
-                                            <Grid ColumnDefinitions="*,Auto">
-                                                <StackPanel Grid.Column="0" Spacing="4">
+                    <!-- 右侧实例区域 -->
+                    <Grid Grid.Column="1" ColumnDefinitions="220,*">
+                        <Border Grid.Column="0" Classes="Card" Margin="0,0,16,0">
+                            <Grid RowDefinitions="Auto,*">
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,16,16,8">
+                                    <TextBlock Grid.Column="0" Text="实例列表" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
+                                    <Button Grid.Column="1" Content="刷新" Command="{Binding RefreshVersionsCommand}" Background="Transparent" Foreground="#1171d1" Padding="4" FontSize="12" CornerRadius="4" />
+                                </Grid>
+                                <ListBox x:Name="InstanceListBox" Grid.Row="1" ItemsSource="{Binding Instances}" SelectedItem="{Binding SelectedInstance, Mode=TwoWay}" Background="Transparent" BorderThickness="0" Margin="8,0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="8" CornerRadius="4" Margin="0,0,0,4">
+                                                <StackPanel Spacing="4">
                                                     <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" />
-                                                    <TextBlock Text="{Binding BaseVersion, StringFormat='基础版本: {0}'}" FontSize="12" Foreground="#666" IsVisible="{Binding IsIndependent}" />
+                                                    <TextBlock Text="{Binding BaseVersion, StringFormat='基础版本: {0}'}" FontSize="12" Foreground="#666" />
+                                                    <TextBlock Text="双击启动" FontSize="10" Foreground="#1171d1" Opacity="0.8" />
                                                 </StackPanel>
-                                                <Button Grid.Column="1" Content="打开" 
-                                                        Command="{Binding $parent[ListBox].((vm:MainViewModel)DataContext).OpenFolderCommand}" 
-                                                        CommandParameter="{Binding}"
-                                                        Background="#E0EAF5" Foreground="#1171d1" CornerRadius="4" Padding="12,4" VerticalAlignment="Center" />
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </Grid>
-                    </Border>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="1" Classes="Card">
+                            <Grid RowDefinitions="Auto,Auto,*">
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,16,16,8">
+                                    <TextBlock Grid.Column="0" Text="{Binding SelectedInstance.Name, FallbackValue='未选择实例'}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Content="打开文件夹" Command="{Binding OpenSelectedFolderCommand}" Background="#E0EAF5" Foreground="#1171d1" CornerRadius="4" Padding="12,4" />
+                                </Grid>
+                                <TextBlock Grid.Row="1" Text="Mod 列表" FontSize="14" FontWeight="Bold" Margin="16,8,16,8" />
+                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding CurrentMods}" Margin="16,0,16,16">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#F9F9F9" CornerRadius="4" Padding="8" Margin="0,0,0,4">
+                                                    <TextBlock Text="{Binding FileName}" FontSize="12" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </Grid>
 
-                <!-- 设置页面 -->
+                <!-- 设置页 -->
                 <ScrollViewer IsVisible="{Binding IsSettingsPage}">
                     <StackPanel>
                         <TextBlock Text="启动设置" FontSize="16" FontWeight="Bold" Margin="0,16,0,8" />
-                        <Border Classes="Card">
+                        <Border Classes="Card" Margin="0,0,0,16">
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                                     <TextBlock Grid.Column="0" Text="最大内存分配" VerticalAlignment="Center" />
@@ -224,7 +232,7 @@
                                 </Grid>
                             </StackPanel>
                         </Border>
-                        <TextBlock Text="Java 设置" FontSize="16" FontWeight="Bold" Margin="0,16,0,8" />
+                        <TextBlock Text="Java 设置" FontSize="16" FontWeight="Bold" Margin="0,8,0,8" />
                         <Border Classes="Card">
                             <StackPanel Spacing="12">
                                 <TextBlock Text="自定义 Java 路径（留空则自动检测）" FontSize="12" Foreground="#666" />
@@ -234,8 +242,8 @@
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- 下载/资源页面 -->
-                <Grid IsVisible="{Binding IsDownloadPage}" ColumnDefinitions="*,320" ClipToBounds="True">
+                <!-- 下载页 -->
+                <Grid IsVisible="{Binding IsDownloadPage}" ColumnDefinitions="*,280" ClipToBounds="True">
                     <Border Grid.Column="0" Classes="Card" Padding="20" Margin="0,0,16,0">
                         <Grid RowDefinitions="Auto,Auto,Auto,*">
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
@@ -246,13 +254,13 @@
 
                             <Grid Grid.Row="1" IsVisible="{Binding IsAutoInstallMode}" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
                                 <CheckBox Grid.Column="0" Content="镜像加速" IsChecked="{Binding IsUsingMirror}" FontSize="12" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1" Text="{Binding DownloadStatusText}" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="16,0,0,0" TextWrapping="Wrap" MaxWidth="180"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DownloadStatusText}" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="16,0,0,0" TextWrapping="Wrap" />
                                 <Button Grid.Column="2" Content="刷新列表" Command="{Binding FetchDownloadVersionsCommand}" Background="#1171d1" Foreground="White" CornerRadius="4" Padding="12,4" VerticalAlignment="Center" />
                             </Grid>
 
                             <ScrollViewer Grid.Row="3" IsVisible="{Binding IsAutoInstallMode}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                <ItemsControl ItemsSource="{Binding DownloadVersions}">
-                                    <ItemsControl.ItemTemplate>
+                                <ListBox ItemsSource="{Binding DownloadVersions}" SelectedItem="{Binding SelectedDownloadVersion}" Background="Transparent" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <Border Padding="8" Background="Transparent" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
                                                 <Grid ColumnDefinitions="*,Auto">
@@ -261,8 +269,8 @@
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
                             </ScrollViewer>
 
                             <Grid Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsManualInstallMode}" RowDefinitions="Auto,Auto,*">
@@ -277,7 +285,7 @@
 
                             <Grid Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsSearchingMode}" RowDefinitions="Auto,Auto,*">
                                 <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,4">
-                                    <ComboBox Grid.Column="0" SelectedItem="{Binding SearchProjectType}" Margin="0,0,8,0" Width="110">
+                                    <ComboBox Grid.Column="0" SelectedItem="{Binding SearchProjectType}" Margin="0,0,8,0" Width="100">
                                         <x:String>mod</x:String>
                                         <x:String>modpack</x:String>
                                         <x:String>resourcepack</x:String>
@@ -329,11 +337,11 @@
                     </Border>
                 </Grid>
 
-                <!-- 更多页面 -->
+                <!-- 更多页 -->
                 <Grid IsVisible="{Binding IsMorePage}">
                     <TextBlock Text="更多页面开发中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Foreground="#999" />
                 </Grid>
-
+                
                 <!-- 更新弹窗 -->
                 <Border Grid.RowSpan="2" IsVisible="{Binding IsUpdatePopupVisible}" Background="#80000000" ZIndex="100">
                     <Border Background="White" CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 8 24 0 #40000000">
