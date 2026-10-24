@@ -4,20 +4,18 @@ Imports System.Net.Http
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Collections.Concurrent
+Imports System.Diagnostics
 Imports Newtonsoft.Json.Linq
 
-''' <summary>
-''' 最小 Minecraft 下载器：版本 JSON、jar、libraries、assets。
-''' 不依赖 PCL.Modules 的 UI 进度系统，独立实现。
-''' </summary>
 Public Module DownloadCore
 
     Public Class DownloadOptions
         Public Property McFolder As String
         Public Property VersionName As String
         Public Property MaxParallel As Integer = 8
-        Public Property UseMirror As Boolean = False ' 预留：BMCLAPI 等镜像
-        Public Property ProgressCallback As Action(Of String, Integer, Integer) ' (阶段, 已完成, 总数)
+        Public Property UseMirror As Boolean = False ' True = BMCLAPI, False = Mojang
+        ' (阶段, 已完成, 总数, 当前速度 KB/s)
+        Public Property ProgressCallback As Action(Of String, Integer, Integer, Double)
     End Class
 
     Public Class DownloadResult
@@ -30,14 +28,6 @@ Public Module DownloadCore
 
     Private ReadOnly HttpClient As New HttpClient() With {.Timeout = TimeSpan.FromMinutes(5)}
 
-    ' Mojang 官方源
-    Private Const VersionManifestUrl As String = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
-    Private Const LibrariesBaseUrl As String = "https://libraries.minecraft.net/"
-    Private Const ResourcesBaseUrl As String = "https://resources.download.minecraft.net/"
-
-    ''' <summary>
-    ''' 下载指定版本的 JSON、jar、libraries、assets。
-    ''' </summary>
     Public Function Download(options As DownloadOptions) As DownloadResult
         Dim result As New DownloadResult()
         Try
@@ -45,16 +35,24 @@ Public Module DownloadCore
             Dim versionDir = Path.Combine(mcDir, "versions", options.VersionName)
             Directory.CreateDirectory(versionDir)
 
+            ' 源地址
+            Dim metaBase = If(options.UseMirror, "https://bmclapi2.bangbang93.com", "https://piston-meta.mojang.com")
+            Dim libBase = If(options.UseMirror, "https://bmclapi2.bangbang93.com/maven", "https://libraries.minecraft.net")
+            Dim assetBase = If(options.UseMirror, "https://bmclapi2.bangbang93.com/assets", "https://resources.download.minecraft.net")
+
             ' 1. 版本 JSON
             Dim versionJsonPath = Path.Combine(versionDir, options.VersionName & ".json")
+            Dim json As JObject = Nothing
+
             If Not File.Exists(versionJsonPath) Then
                 Report(options, "获取版本清单", 0, 1)
-                Dim manifestJson = HttpClient.GetStringAsync(VersionManifestUrl).Result
+                Dim manifestUrl = $"{metaBase}/mc/game/version_manifest_v2.json"
+                Dim manifestJson = HttpClient.GetStringAsync(manifestUrl).Result
                 Dim manifest = JObject.Parse(manifestJson)
                 Dim versionUrl As String = Nothing
                 For Each v In CType(manifest("versions"), JArray)
                     If v("id").ToString() = options.VersionName Then
-                        versionUrl = v("url").ToString()
+                        versionUrl = v("url").ToString().Replace("https://piston-meta.mojang.com", metaBase)
                         Exit For
                     End If
                 Next
@@ -69,16 +67,15 @@ Public Module DownloadCore
                 result.SkippedFiles += 1
             End If
 
-            ' 2. 解析 JSON
-            Dim json = JObject.Parse(File.ReadAllText(versionJsonPath))
+            json = JObject.Parse(File.ReadAllText(versionJsonPath))
             Dim downloads = TryCast(json("downloads"), JObject)
 
-            ' 3. 版本 jar
+            ' 2. 版本 jar
             Dim versionJarPath = Path.Combine(versionDir, options.VersionName & ".jar")
             If Not File.Exists(versionJarPath) AndAlso downloads IsNot Nothing Then
                 Dim jarInfo = TryCast(downloads("client"), JObject)
                 If jarInfo IsNot Nothing Then
-                    Dim jarUrl = jarInfo("url").ToString()
+                    Dim jarUrl = jarInfo("url").ToString().Replace("https://piston-data.mojang.com", metaBase).Replace("https://launcher.mojang.com", metaBase)
                     Report(options, "下载版本 jar", 0, 1)
                     DownloadFile(jarUrl, versionJarPath).Wait()
                     result.DownloadedFiles += 1
@@ -87,7 +84,7 @@ Public Module DownloadCore
                 result.SkippedFiles += 1
             End If
 
-            ' 4. libraries
+            ' 3. libraries
             Dim libsDir = Path.Combine(mcDir, "libraries")
             Dim libTasks As New List(Of (Url As String, Path As String))
             For Each libItem As JToken In CType(json("libraries"), JArray)
@@ -100,34 +97,48 @@ Public Module DownloadCore
                 If File.Exists(libPath) Then
                     result.SkippedFiles += 1
                 Else
-                    libTasks.Add((artifact("url").ToString(), libPath))
+                    Dim libUrl = $"{libBase}/{relPath}"
+                    libTasks.Add((libUrl, libPath))
                 End If
             Next
             If libTasks.Count > 0 Then
                 Report(options, "下载 libraries", 0, libTasks.Count)
                 Dim done As Integer = 0
                 Dim failed As Integer = 0
+                Dim bytesTotal As Long = 0
+                Dim sw = Stopwatch.StartNew()
+                Dim lastBytes As Long = 0
+                Dim lastTime As Long = 0
+
                 Parallel.ForEach(libTasks, New ParallelOptions With {.MaxDegreeOfParallelism = options.MaxParallel},
                     Sub(task)
                         Try
                             Directory.CreateDirectory(Path.GetDirectoryName(task.Path))
-                            DownloadFile(task.Url, task.Path).Wait()
+                            Dim bytes = DownloadFile(task.Url, task.Path).Result
+                            Interlocked.Add(bytesTotal, bytes)
                             Interlocked.Increment(done)
                             result.DownloadedFiles += 1
-                            Report(options, "下载 libraries", done, libTasks.Count)
+                            
+                            ' 计算速度
+                            Dim elapsed = sw.ElapsedMilliseconds
+                            If elapsed - lastTime > 200 Then
+                                Dim speed = (bytesTotal - lastBytes) / 1024.0 / ((elapsed - lastTime) / 1000.0)
+                                lastBytes = bytesTotal
+                                lastTime = elapsed
+                                Report(options, "下载 libraries", done, libTasks.Count, speed)
+                            End If
                         Catch ex As Exception
                             Interlocked.Increment(failed)
-                            Console.WriteLine($"[WARN] 库下载失败: {task.Url} - {ex.Message}")
                         End Try
                     End Sub)
                 result.FailedFiles += failed
             End If
 
-            ' 5. assets
+            ' 4. assets
             Dim assetIndex = TryCast(json("assetIndex"), JObject)
             If assetIndex IsNot Nothing Then
                 Dim assetIndexId = assetIndex("id").ToString()
-                Dim assetIndexUrl = assetIndex("url").ToString()
+                Dim assetIndexUrl = assetIndex("url").ToString().Replace("https://piston-meta.mojang.com", metaBase)
                 Dim assetIndexDir = Path.Combine(mcDir, "assets", "indexes")
                 Directory.CreateDirectory(assetIndexDir)
                 Dim assetIndexPath = Path.Combine(assetIndexDir, assetIndexId & ".json")
@@ -147,7 +158,7 @@ Public Module DownloadCore
                         Dim prefix = hash.Substring(0, 2)
                         Dim assetPath = Path.Combine(assetsDir, prefix, hash)
                         If Not File.Exists(assetPath) Then
-                            assetTasks.Add(($"{ResourcesBaseUrl}{prefix}/{hash}", assetPath))
+                            assetTasks.Add(($"{assetBase}/{prefix}/{hash}", assetPath))
                         Else
                             result.SkippedFiles += 1
                         End If
@@ -155,16 +166,27 @@ Public Module DownloadCore
                     If assetTasks.Count > 0 Then
                         Report(options, "下载 assets", 0, assetTasks.Count)
                         Dim done As Integer = 0
+                        Dim bytesTotal As Long = 0
+                        Dim sw = Stopwatch.StartNew()
+                        Dim lastBytes As Long = 0
+                        Dim lastTime As Long = 0
                         Parallel.ForEach(assetTasks, New ParallelOptions With {.MaxDegreeOfParallelism = options.MaxParallel},
                             Sub(task)
                                 Try
                                     Directory.CreateDirectory(Path.GetDirectoryName(task.Path))
-                                    DownloadFile(task.Url, task.Path).Wait()
+                                    Dim bytes = DownloadFile(task.Url, task.Path).Result
+                                    Interlocked.Add(bytesTotal, bytes)
                                     Interlocked.Increment(done)
                                     result.DownloadedFiles += 1
-                                    Report(options, "下载 assets", done, assetTasks.Count)
+                                    
+                                    Dim elapsed = sw.ElapsedMilliseconds
+                                    If elapsed - lastTime > 200 Then
+                                        Dim speed = (bytesTotal - lastBytes) / 1024.0 / ((elapsed - lastTime) / 1000.0)
+                                        lastBytes = bytesTotal
+                                        lastTime = elapsed
+                                        Report(options, "下载 assets", done, assetTasks.Count, speed)
+                                    End If
                                 Catch ex As Exception
-                                    Console.WriteLine($"[WARN] Asset 下载失败: {task.Url} - {ex.Message}")
                                 End Try
                             End Sub)
                     End If
@@ -180,17 +202,18 @@ Public Module DownloadCore
         Return result
     End Function
 
-    Private Async Function DownloadFile(url As String, path As String) As Task
+    Private Async Function DownloadFile(url As String, path As String) As Task(Of Long)
         Using resp = Await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
             resp.EnsureSuccessStatusCode()
+            Dim contentLength = resp.Content.Headers.ContentLength.GetValueOrDefault(0)
             Using fs As New FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 8192, useAsync:=True)
                 Await resp.Content.CopyToAsync(fs)
             End Using
+            Return contentLength
         End Using
     End Function
 
-    Private Sub Report(options As DownloadOptions, stage As String, done As Integer, total As Integer)
-        options.ProgressCallback?.Invoke(stage, done, total)
+    Private Sub Report(options As DownloadOptions, stage As String, done As Integer, total As Integer, Optional speed As Double = 0)
+        options.ProgressCallback?.Invoke(stage, done, total, speed)
     End Sub
-
 End Module

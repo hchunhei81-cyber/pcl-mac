@@ -66,6 +66,15 @@ public partial class MainViewModel : ViewModelBase
     public partial bool IsBusy { get; set; } = false;
 
     [ObservableProperty]
+    public partial bool IsUpdatePopupVisible { get; set; } = false;
+
+    [ObservableProperty]
+    public partial string UpdatePopupTitle { get; set; } = "发现新版本";
+
+    [ObservableProperty]
+    public partial string UpdatePopupMessage { get; set; } = "";
+
+    [ObservableProperty]
     public partial int MaxMemoryMb { get; set; } = 2048;
 
     [ObservableProperty]
@@ -79,6 +88,24 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string DownloadStatusText { get; set; } = "点击刷新获取版本列表";
+
+    [ObservableProperty]
+    public partial bool IsUsingMirror { get; set; } = true; // 默认用镜像
+
+    [ObservableProperty]
+    public partial double DownloadProgress { get; set; } = 0;
+
+    [ObservableProperty]
+    public partial string FabricInstallStatus { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsInstallingFabric { get; set; } = false;
+
+    [ObservableProperty]
+    public partial string ForgeInstallStatus { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsInstallingForge { get; set; } = false;
 
     [ObservableProperty]
     public partial PCL.Launcher.VersionManifest.VersionInfo? SelectedDownloadVersion { get; set; }
@@ -176,6 +203,53 @@ public partial class MainViewModel : ViewModelBase
         config.Save();
     }
 
+    [ObservableProperty]
+    public partial string PendingDownloadUrl { get; set; } = "";
+
+    [RelayCommand]
+    private async Task ShowTestUpdateAsync()
+    {
+        UpdatePopupTitle = "正在检查更新...";
+        UpdatePopupMessage = "请稍候";
+        IsUpdatePopupVisible = true;
+
+        try
+        {
+            var info = await Task.Run(() => PCL.Launcher.UpdateChecker.CheckForUpdates());
+            if (info.HasUpdate)
+            {
+                UpdatePopupTitle = $"发现新版本 v{info.LatestVersion}";
+                UpdatePopupMessage = $"当前版本: v{info.CurrentVersion}\n\n更新说明:\n{info.ReleaseNotes ?? "（无）"}";
+                PendingDownloadUrl = info.DownloadUrl ?? "";
+            }
+            else
+            {
+                UpdatePopupTitle = "已是最新版本";
+                UpdatePopupMessage = $"当前版本 v{info.CurrentVersion}，无需更新。";
+                PendingDownloadUrl = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            UpdatePopupTitle = "检查更新失败";
+            UpdatePopupMessage = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ConfirmUpdate()
+    {
+        IsUpdatePopupVisible = false;
+        AppendLog("[Test] 用户已确认更新，正在模拟下载...");
+    }
+
+    [RelayCommand]
+    private void CancelUpdate()
+    {
+        IsUpdatePopupVisible = false;
+        AppendLog("[Test] 用户取消了更新。");
+    }
+
     [RelayCommand]
     private void RefreshVersions()
     {
@@ -240,6 +314,75 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task InstallFabricAsync()
+    {
+        if (SelectedDownloadVersion == null || IsInstallingFabric) return;
+        IsInstallingFabric = true;
+        FabricInstallStatus = "正在安装 Fabric...";
+
+        try
+        {
+            var options = new PCL.Launcher.FabricInstaller.FabricInstallOptions
+            {
+                McFolder = McFolder,
+                McVersion = SelectedDownloadVersion.Id,
+                JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath
+            };
+            var result = await Task.Run(() => PCL.Launcher.FabricInstaller.Install(options));
+            FabricInstallStatus = result.Message;
+
+            if (result.Success)
+            {
+                RefreshVersions();
+            }
+        }
+        catch (Exception ex)
+        {
+            FabricInstallStatus = $"安装失败: {ex.Message}";
+        }
+        finally
+        {
+            IsInstallingFabric = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallForgeAsync()
+    {
+        if (SelectedDownloadVersion == null || IsInstallingForge) return;
+        IsInstallingForge = true;
+        ForgeInstallStatus = "正在安装 Forge...";
+
+        try
+        {
+            // 这里先硬编码一个推荐版本，实际应该从 Forge Maven 查询最新版
+            var forgeVersion = $"{SelectedDownloadVersion.Id}-47.2.0";
+            var options = new PCL.Launcher.ForgeInstaller.ForgeInstallOptions
+            {
+                McFolder = McFolder,
+                McVersion = SelectedDownloadVersion.Id,
+                ForgeVersion = forgeVersion,
+                JavaPath = string.IsNullOrWhiteSpace(JavaPath) ? null : JavaPath
+            };
+            var result = await Task.Run(() => PCL.Launcher.ForgeInstaller.Install(options));
+            ForgeInstallStatus = result.Message;
+
+            if (result.Success)
+            {
+                RefreshVersions();
+            }
+        }
+        catch (Exception ex)
+        {
+            ForgeInstallStatus = $"安装失败: {ex.Message}";
+        }
+        finally
+        {
+            IsInstallingForge = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task InstallVersionAsync()
     {
         if (SelectedDownloadVersion == null) return;
@@ -251,10 +394,11 @@ public partial class MainViewModel : ViewModelBase
                 McFolder = McFolder,
                 VersionName = SelectedDownloadVersion.Id,
                 MaxParallel = 8,
-                ProgressCallback = (stage, done, total) =>
+                UseMirror = IsUsingMirror,
+                ProgressCallback = (stage, done, total, speed) =>
                 {
-                    if (done == total || done % 50 == 0)
-                        DownloadStatusText = $"[{stage}] {done}/{total}";
+                    DownloadStatusText = $"[{stage}] {done}/{total} - {speed:F1} KB/s";
+                    DownloadProgress = total > 0 ? (double)done / total * 100 : 0;
                 }
             };
             PCL.Launcher.DownloadCore.Download(dlOptions);
@@ -313,23 +457,64 @@ public partial class MainViewModel : ViewModelBase
         LoginStatus = "未登录";
     }
 
+    [ObservableProperty]
+    public partial string DeviceCodeMessage { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsDeviceCodeVisible { get; set; } = false;
+
     [RelayCommand]
-    private void Login()
+    private async Task LoginAsync()
     {
-        if (string.IsNullOrWhiteSpace(PlayerName))
+        if (IsOfflineMode)
         {
-            LoginStatus = "请输入玩家名";
+            if (string.IsNullOrWhiteSpace(PlayerName))
+            {
+                LoginStatus = "请输入玩家名";
+                return;
+            }
+            IsLoggedIn = true;
+            LoginStatus = $"已登录为离线账户: {PlayerName}";
             return;
         }
 
-        if (IsOfflineMode)
+        // 在线登录
+        LoginStatus = "正在获取设备代码...";
+        IsDeviceCodeVisible = true;
+        DeviceCodeMessage = "正在请求微软授权...";
+
+        try
         {
-            IsLoggedIn = true;
-            LoginStatus = $"已登录为离线账户: {PlayerName}";
+            var code = await Task.Run(() => PCL.Launcher.MicrosoftAuth.RequestDeviceCode());
+            DeviceCodeMessage = code.Message;
+            LoginStatus = "等待用户授权...";
+
+            // 复制代码到剪贴板（可选）或提示用户
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(code.VerificationUri) { UseShellExecute = true });
+
+            // 轮询 Token
+            var msToken = await Task.Run(() => PCL.Launcher.MicrosoftAuth.PollForToken(code.DeviceCode, code.Interval, code.ExpiresIn));
+            LoginStatus = "正在验证 Xbox 和 Minecraft 账号...";
+            IsDeviceCodeVisible = false;
+
+            // 换取 MC Token
+            var result = await Task.Run(() => PCL.Launcher.MicrosoftAuth.AuthenticateMinecraft(msToken));
+            if (result.Success)
+            {
+                IsLoggedIn = true;
+                PlayerName = result.PlayerName;
+                LoginStatus = $"已登录为正版账户: {PlayerName}";
+                // 这里可以存 result.AccessToken 和 result.Uuid 以便启动时使用
+            }
+            else
+            {
+                LoginStatus = result.Message;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            LoginStatus = "微软在线登录开发中，敬请期待...";
+            LoginStatus = $"登录失败: {ex.Message}";
+            IsDeviceCodeVisible = false;
         }
     }
 
@@ -391,7 +576,7 @@ public partial class MainViewModel : ViewModelBase
                 McFolder = McFolder,
                 VersionName = VersionName,
                 MaxParallel = 8,
-                ProgressCallback = (stage, done, total) =>
+                ProgressCallback = (stage, done, total, speed) =>
                 {
                     if (done == total || done % 50 == 0)
                         AppendLog($"[{stage}] {done}/{total}");

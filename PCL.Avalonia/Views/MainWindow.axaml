@@ -6,7 +6,7 @@
     mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
     x:Class="PCL.Avalonia.Views.MainWindow"
     x:DataType="vm:MainViewModel"
-    Icon="/Assets/avalonia-logo.ico"
+    Icon="/Assets/AppIcon.png"
     Title="PCL Mac 第三方重构版"
     Width="900" Height="600"
     Background="#F3F7FA">
@@ -72,15 +72,36 @@
                 <TextBlock Grid.Column="0" Text="PCL Mac 第三方重构版" Foreground="White" FontSize="18"
                     FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,40,0" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Content="启动" Command="{Binding NavigateCommand}" CommandParameter="Launch" Classes="NavBtn" Classes.active="{Binding IsLaunchPage}" />
-                    <Button Content="下载" Command="{Binding NavigateCommand}" CommandParameter="Download" Classes="NavBtn" Classes.active="{Binding IsDownloadPage}" />
-                    <Button Content="设置" Command="{Binding NavigateCommand}" CommandParameter="Settings" Classes="NavBtn" Classes.active="{Binding IsSettingsPage}" />
-                    <Button Content="更多" Command="{Binding NavigateCommand}" CommandParameter="More" Classes="NavBtn" Classes.active="{Binding IsMorePage}" />
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Launch" Classes="NavBtn" Classes.active="{Binding IsLaunchPage}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Data="M8,5 L19,12 L8,19 Z" Fill="White" Width="12" Height="12" Stretch="Uniform"/>
+                            <TextBlock Text="启动" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Download" Classes="NavBtn" Classes.active="{Binding IsDownloadPage}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Data="M12,3 L12,15 M7,10 L12,15 L17,10 M4,18 L20,18" Stroke="White" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform"/>
+                            <TextBlock Text="下载" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="Settings" Classes="NavBtn" Classes.active="{Binding IsSettingsPage}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Data="M12,8 A4,4 0 1 1 12,16 A4,4 0 1 1 12,8 M12,2 L12,5 M12,19 L12,22 M2,12 L5,12 M19,12 L22,12" Stroke="White" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform"/>
+                            <TextBlock Text="设置" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding NavigateCommand}" CommandParameter="More" Classes="NavBtn" Classes.active="{Binding IsMorePage}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Path Data="M4,4 L10,4 L10,10 L4,10 Z M14,4 L20,4 L20,10 L14,10 Z M4,14 L10,14 L10,20 L4,20 Z M14,14 L20,14 L20,20 L14,20 Z" Stroke="White" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform"/>
+                            <TextBlock Text="更多" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Content="测试更新" Command="{Binding ShowTestUpdateCommand}" Background="#1171d1" Foreground="White" CornerRadius="20" Padding="12,6" FontSize="12" Margin="16,0,0,0" />
+                
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- 主体区域 -->
         <Grid Grid.Row="1" ColumnDefinitions="220,*">
             <!-- 左侧菜单 -->
             <Border Grid.Column="0" Padding="12,16">
@@ -100,42 +121,36 @@
                 <Grid IsVisible="{Binding IsLaunchPage}" ColumnDefinitions="320,*">
                     <Border Grid.Column="0" Classes="Card">
                         <Grid RowDefinitions="Auto,*,Auto">
-                            <!-- 顶部 Tab -->
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,24">
                                 <Button Content="在线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Online" Classes="TabBtn" Classes.active="{Binding IsOfflineMode, Converter={x:Static BoolConverters.Not}}" />
                                 <Button Content="离线" Command="{Binding SwitchLoginModeCommand}" CommandParameter="Offline" Classes="TabBtn" Classes.active="{Binding IsOfflineMode}" />
                             </StackPanel>
 
-                            <!-- 中间头像 -->
                             <StackPanel Grid.Row="1" Spacing="20" VerticalAlignment="Center">
                                 <Border Width="80" Height="80" CornerRadius="40" BorderBrush="#1171d1" BorderThickness="2" HorizontalAlignment="Center">
                                     <Path Data="M 40,35 A 15,15 0 1 1 40,65 A 15,15 0 1 1 40,35 M 20,80 C 20,65 30,55 40,55 C 50,55 60,65 60,80" Fill="#1171d1" Stretch="Uniform" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
 
-                                <!-- 已登录 -->
                                 <StackPanel IsVisible="{Binding IsLoggedIn}" Spacing="8" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding PlayerName}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding LoginStatus}" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
                                     <Button Content="退出登录" Command="{Binding LogoutCommand}" Background="Transparent" Foreground="#999" BorderThickness="0" />
                                 </StackPanel>
 
-                                <!-- 未登录 -->
                                 <StackPanel IsVisible="{Binding !IsLoggedIn}" Spacing="12">
-                                    <!-- 离线模式 -->
                                     <StackPanel IsVisible="{Binding IsOfflineMode}" Spacing="12">
                                         <TextBox Text="{Binding PlayerName}" PlaceholderText="输入离线用户名" />
                                         <Button Content="登录" Command="{Binding LoginCommand}" Background="#1171d1" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
                                     </StackPanel>
                                     
-                                    <!-- 在线模式 -->
                                     <StackPanel IsVisible="{Binding !IsOfflineMode}" Spacing="12">
-                                        <TextBlock Text="微软正版登录开发中，敬请期待..." Foreground="#999" HorizontalAlignment="Center" />
-                                        <Button Content="登录" Command="{Binding LoginCommand}" Background="#CCCCCC" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
+                                        <TextBlock Text="微软正版登录" Foreground="#666" HorizontalAlignment="Center" />
+                                        <TextBlock Text="由于需要 Azure 客户端 ID 和信用卡验证，正版登录功能暂未开放。" Foreground="#999" TextWrapping="Wrap" HorizontalAlignment="Center" FontSize="12" />
+                                        <Button Content="登录 (开发中)" IsEnabled="False" Background="#CCCCCC" Foreground="White" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" />
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
 
-                            <!-- 底部版本和启动按钮 -->
                             <StackPanel Grid.Row="2" Spacing="8">
                                 <ComboBox ItemsSource="{Binding AvailableVersions}" SelectedItem="{Binding VersionName}" HorizontalAlignment="Stretch" />
                                 <Button Command="{Binding LaunchCommand}" Background="White" BorderBrush="#1171d1" BorderThickness="1" CornerRadius="4" Padding="0,8" HorizontalAlignment="Stretch" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}">
@@ -151,22 +166,25 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-
-                    <!-- 右侧背景图 -->
-                    <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8">
+                    <Border Grid.Column="1" Margin="16,0,0,0" CornerRadius="8" ClipToBounds="True">
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
                                 <GradientStop Color="#E5F0F8" Offset="0.0" />
-                                <GradientStop Color="#D4E6F5" Offset="1.0" />
+                                <GradientStop Color="#B8D8F0" Offset="1.0" />
                             </LinearGradientBrush>
                         </Border.Background>
+                        <!-- 背景文字/Logo -->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.1">
+                            <TextBlock Text="PCL" FontSize="120" FontWeight="Bold" Foreground="#1171d1" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Plain Craft Launcher" FontSize="20" FontWeight="Bold" Foreground="#1171d1" HorizontalAlignment="Center"/>
+                        </StackPanel>
                     </Border>
                 </Grid>
 
                 <!-- 2. 设置页面 -->
                 <ScrollViewer IsVisible="{Binding IsSettingsPage}">
                     <StackPanel>
-                        <TextBlock Text="启动设置" Classes="Header" />
+                        <TextBlock Text="启动设置" FontSize="16" FontWeight="Bold" Margin="0,16,0,8" />
                         <Border Classes="Card">
                             <StackPanel Spacing="12">
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
@@ -178,8 +196,7 @@
                                 </Grid>
                             </StackPanel>
                         </Border>
-
-                        <TextBlock Text="Java 设置" Classes="Header" />
+                        <TextBlock Text="Java 设置" FontSize="16" FontWeight="Bold" Margin="0,16,0,8" />
                         <Border Classes="Card">
                             <StackPanel Spacing="12">
                                 <TextBlock Text="自定义 Java 路径（留空则自动检测）" FontSize="12" Foreground="#666" />
@@ -191,8 +208,9 @@
 
                 <!-- 3. 下载/资源页面 -->
                 <Grid IsVisible="{Binding IsDownloadPage}" ColumnDefinitions="*,320" ClipToBounds="True">
+                    <!-- 左侧内容区 -->
                     <Border Grid.Column="0" Classes="Card" Padding="20" Margin="0,0,16,0">
-                        <Grid RowDefinitions="Auto,*">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*">
                             <!-- Tab 切换 -->
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
                                 <Button Content="版本下载" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Install" Classes="TabBtn" Classes.active="{Binding IsDownloadInstallTab}" />
@@ -200,26 +218,31 @@
                                 <Button Content="整合包" Command="{Binding SwitchDownloadTabCommand}" CommandParameter="Modpack" Classes="TabBtn" Classes.active="{Binding IsDownloadModpackTab}" />
                             </StackPanel>
 
-                            <!-- 版本下载列表 -->
-                            <Grid Grid.Row="1" IsVisible="{Binding IsAutoInstallMode}" RowDefinitions="Auto,*">
-                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
-                                    <TextBlock Grid.Column="0" Text="{Binding DownloadStatusText}" FontSize="12" Foreground="#999" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="1" Content="刷新列表" Command="{Binding FetchDownloadVersionsCommand}" Background="#1171d1" Foreground="White" CornerRadius="4" Padding="12,4" />
-                                </Grid>
-                                <ListBox Grid.Row="1" ItemsSource="{Binding DownloadVersions}" SelectedItem="{Binding SelectedDownloadVersion}" Background="Transparent" BorderThickness="0">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid ColumnDefinitions="*,Auto" Margin="0,4">
-                                                <TextBlock Grid.Column="0" Text="{Binding Id}" FontSize="14" VerticalAlignment="Center" />
-                                                <TextBlock Grid.Column="1" Text="{Binding Type}" FontSize="12" Foreground="#999" VerticalAlignment="Center" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                            <!-- 版本下载顶部控制条 -->
+                            <Grid Grid.Row="1" IsVisible="{Binding IsAutoInstallMode}" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+                                <CheckBox Grid.Column="0" Content="镜像加速" IsChecked="{Binding IsUsingMirror}" FontSize="12" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{Binding DownloadStatusText}" FontSize="12" Foreground="#999" VerticalAlignment="Center" Margin="16,0,0,0" TextWrapping="Wrap" MaxWidth="180"/>
+                                <Button Grid.Column="2" Content="刷新列表" Command="{Binding FetchDownloadVersionsCommand}" Background="#1171d1" Foreground="White" CornerRadius="4" Padding="12,4" VerticalAlignment="Center" />
                             </Grid>
 
+                            <!-- 版本列表（核心滚动区） -->
+                            <ScrollViewer Grid.Row="3" IsVisible="{Binding IsAutoInstallMode}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding DownloadVersions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Padding="8" Background="Transparent" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Id}" FontSize="14" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Type}" FontSize="12" Foreground="#999" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
                             <!-- 手动导入 -->
-                            <Grid Grid.Row="1" IsVisible="{Binding IsManualInstallMode}" RowDefinitions="Auto,Auto,*">
+                            <Grid Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsManualInstallMode}" RowDefinitions="Auto,Auto,*">
                                 <StackPanel Grid.Row="0" Spacing="12">
                                     <TextBlock Text="手动导入整合包" FontSize="16" FontWeight="Bold" />
                                     <TextBox Text="{Binding ImportPath}" PlaceholderText="整合包完整路径 (.zip / .mrpack)" />
@@ -230,7 +253,7 @@
                             </Grid>
 
                             <!-- 资源搜索列表 -->
-                            <Grid Grid.Row="1" IsVisible="{Binding IsSearchingMode}" RowDefinitions="Auto,Auto,*">
+                            <Grid Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsSearchingMode}" RowDefinitions="Auto,Auto,*">
                                 <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,4">
                                     <ComboBox Grid.Column="0" SelectedItem="{Binding SearchProjectType}" Margin="0,0,8,0" Width="110">
                                         <x:String>mod</x:String>
@@ -242,7 +265,7 @@
                                     <Button Grid.Column="2" Content="搜索" Command="{Binding SearchResourcesCommand}" Background="#1171d1" Foreground="White" CornerRadius="4" Padding="12,4" />
                                 </Grid>
                                 <TextBlock Grid.Row="1" Text="{Binding SearchStatus}" FontSize="11" Foreground="#999" Margin="0,0,0,8" />
-                                <ScrollViewer Grid.Row="2">
+                                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                                     <ItemsControl ItemsSource="{Binding SearchResults}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
@@ -261,6 +284,8 @@
                                     </ItemsControl>
                                 </ScrollViewer>
                             </Grid>
+
+                            <ProgressBar Grid.Row="4" Value="{Binding DownloadProgress}" Maximum="100" Height="8" Margin="0,16,0,0" IsVisible="{Binding IsAutoInstallMode}" />
                         </Grid>
                     </Border>
 
@@ -274,7 +299,11 @@
                                     <TextBlock Text="{Binding SelectedDownloadVersion.Type, FallbackValue=''}" Foreground="#666" FontSize="12" />
                                 </StackPanel>
                             </Border>
-                            <Button Content="开始安装" Command="{Binding InstallVersionCommand}" Background="#1171d1" Foreground="White" FontWeight="Bold" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedDownloadVersion, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Content="下载原版" Command="{Binding InstallVersionCommand}" Background="#1171d1" Foreground="White" FontWeight="Bold" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedDownloadVersion, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Content="安装 Fabric" Command="{Binding InstallFabricCommand}" Background="#F0F0F0" Foreground="#333" FontWeight="Bold" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedDownloadVersion, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <Button Content="安装 Forge" Command="{Binding InstallForgeCommand}" Background="#F0F0F0" Foreground="#333" FontWeight="Bold" Height="40" CornerRadius="4" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedDownloadVersion, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <TextBlock Text="{Binding FabricInstallStatus}" FontSize="12" Foreground="#666" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding ForgeInstallStatus}" FontSize="12" Foreground="#666" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -285,5 +314,27 @@
                 </Grid>
             </Grid>
         </Grid>
+
+        <!-- 自定义更新弹窗遮罩 -->
+        <Border Grid.RowSpan="2" IsVisible="{Binding IsUpdatePopupVisible}" Background="#80000000" ZIndex="100">
+            <Border Background="White" CornerRadius="12" Padding="24" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" BoxShadow="0 8 24 0 #40000000">
+                <Border.RenderTransform>
+                    <ScaleTransform />
+                </Border.RenderTransform>
+                <Border.Transitions>
+                    <Transitions>
+                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" />
+                    </Transitions>
+                </Border.Transitions>
+                <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding UpdatePopupTitle}" FontSize="18" FontWeight="Bold" Foreground="#333" />
+                    <TextBlock Text="{Binding UpdatePopupMessage}" FontSize="14" Foreground="#666" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="取消" Command="{Binding CancelUpdateCommand}" Background="#F0F0F0" Foreground="#333" Padding="16,6" CornerRadius="4" />
+                        <Button Content="确认更新" Command="{Binding ConfirmUpdateCommand}" Background="#1171d1" Foreground="White" Padding="16,6" CornerRadius="4" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 </Window>
